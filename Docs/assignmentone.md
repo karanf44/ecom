@@ -8,7 +8,6 @@ We encourage you to use AI, open-source libraries, and existing codebases—but 
 evaluation criteria will be your choices and the reasoning behind them.
 Do not hold back in HLD and your suggestions
 
-
 Ask yourself:
 ● Why did you choose this particular tool or framework?
 ● How does your architecture support scalability and resilience?

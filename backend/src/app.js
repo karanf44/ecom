@@ -16,6 +16,10 @@ const app = express();
 const logger = require('./utils/logger');
 const { requestLogger, errorLogger } = require('./middleware/requestLogger');
 
+// Import guard rails middleware
+const guardRails = require('./middleware/guardRails');
+const rateLimiting = require('./middleware/rateLimiting');
+
 // Import database connection (this will test the connection)
 const db = require('./config/database');
 
@@ -26,19 +30,49 @@ const cartRoutes = require('./routes/cartRoutes');
 const walletRoutes = require('./routes/walletRoutes');
 const checkoutRoutes = require('./routes/checkoutRoutes');
 
-// Middleware
+// Apply guard rails first - Security headers and global protections
+app.use(guardRails.securityHeaders);
+app.use(guardRails.requestCorrelation());
+
+// Basic middleware
 app.use(cors()); // Enable CORS for frontend integration
-app.use(express.json()); // Parse JSON request bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
+app.use(express.json({ limit: '10mb' })); // Parse JSON request bodies with size limit
+app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Parse URL-encoded request bodies
+
+// Apply global guard rails after body parsing
+app.use(guardRails.requestValidation());
+app.use(guardRails.requestSizeLimit());
+app.use(guardRails.requestTimeout());
+
+// Global rate limiting and monitoring
+app.use(rateLimiting.rateLimitMetrics);
+app.use(rateLimiting.global);
+app.use(rateLimiting.speedLimiter);
+
+// Circuit breaker monitoring and health checks
+app.use(guardRails.circuitBreakerMonitoring());
+app.use(guardRails.serviceHealthCheck());
+
+// Graceful degradation
+app.use(guardRails.gracefulDegradation());
 
 // Add request logging middleware (must be after body parsing middleware)
 app.use(requestLogger);
 
-// Routes
+// Routes with specific guard rails
+app.use('/api/products', guardRails.api);
 app.use('/api/products', productRoutes);
+
+app.use('/api/auth', guardRails.auth);
 app.use('/api/auth', authRoutes);
+
+app.use('/api/cart', guardRails.api);
 app.use('/api/cart', cartRoutes);
+
+app.use('/api/wallet', guardRails.api);
 app.use('/api/wallet', walletRoutes);
+
+app.use('/api/checkout', guardRails.checkout);
 app.use('/api/checkout', checkoutRoutes);
 
 // Root route for testing
@@ -58,6 +92,12 @@ app.get('/', (req, res) => {
       metrics: 'Available at /metrics',
       logging: 'Structured logging active'
     },
+    guardRails: {
+      rateLimiting: 'Active',
+      circuitBreakers: 'Monitoring',
+      securityHeaders: 'Enabled',
+      requestValidation: 'Active'
+    },
     endpoints: {
       products: '/api/products',
       auth: '/api/auth',
@@ -72,9 +112,12 @@ app.get('/', (req, res) => {
 
 // Health check route with comprehensive monitoring
 app.get('/health', async (req, res) => {
+  const { getHealthStatus } = require('./utils/circuitBreaker');
+  
   const checks = {
     api: 'healthy',
     database: 'unknown',
+    circuitBreakers: getHealthStatus(),
     memory: process.memoryUsage(),
     uptime: process.uptime()
   };
@@ -118,6 +161,9 @@ app.get('/health', async (req, res) => {
 
 // Add error logging middleware (must be after routes)
 app.use(errorLogger);
+
+// Enhanced error handling with guard rails
+app.use(guardRails.errorBoundary());
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -171,27 +217,50 @@ app.listen(PORT, () => {
     service: 'startup',
     port: PORT,
     environment: process.env.NODE_ENV || 'development',
-    nodeVersion: process.version
+    nodeVersion: process.version,
+    guardRails: {
+      rateLimiting: 'enabled',
+      circuitBreakers: 'enabled',
+      securityHeaders: 'enabled',
+      requestValidation: 'enabled'
+    }
   });
   
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🛡️  Guard Rails: Rate Limiting, Circuit Breakers, Security Headers`);
   console.log(`📊 Metrics available at: http://localhost:9090/metrics`);
   console.log(`🔍 Health check at: http://localhost:${PORT}/health`);
 });
 
 // Graceful shutdown
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   logger.info('Received SIGINT, starting graceful shutdown', {
     service: 'shutdown'
   });
+  
+  // Cleanup rate limiting Redis connections
+  try {
+    await rateLimiting.cleanup();
+  } catch (error) {
+    logger.error('Error during rate limiting cleanup', error);
+  }
+  
   process.exit(0);
 });
 
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   logger.info('Received SIGTERM, starting graceful shutdown', {
     service: 'shutdown'
   });
+  
+  // Cleanup rate limiting Redis connections
+  try {
+    await rateLimiting.cleanup();
+  } catch (error) {
+    logger.error('Error during rate limiting cleanup', error);
+  }
+  
   process.exit(0);
 });
 
