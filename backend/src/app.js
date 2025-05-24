@@ -16,6 +16,8 @@ const db = require('./config/database');
 const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const walletRoutes = require('./routes/walletRoutes');
+const checkoutRoutes = require('./routes/checkoutRoutes');
 
 // Middleware
 app.use(cors()); // Enable CORS for frontend integration
@@ -26,6 +28,8 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bo
 app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/wallet', walletRoutes);
+app.use('/api/checkout', checkoutRoutes);
 
 // Root route for testing
 app.get('/', (req, res) => {
@@ -36,7 +40,8 @@ app.get('/', (req, res) => {
       products: '/api/products',
       auth: '/api/auth',
       cart: '/api/cart',
-      // Will add more endpoints as we create them
+      wallet: '/api/wallet',
+      checkout: '/api/checkout'
     }
   });
 });
