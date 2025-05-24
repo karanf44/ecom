@@ -1,0 +1,35 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # E-commerce backend application
+  - job_name: 'ecommerce-backend'
+    static_configs:
+      - targets: ['host.docker.internal:9090']  # App metrics port
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+    scheme: http
+
+  # Node.js application (if running locally)
+  - job_name: 'ecommerce-backend-local'
+    static_configs:
+      - targets: ['localhost:9090']  # Local development
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+    scheme: http
+
+  # OpenTelemetry Collector metrics
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8888']
+    scrape_interval: 10s 
