@@ -31,7 +31,7 @@ provider:
     APP_VERSION: ${env:GITHUB_SHA, '1.0.0'}
     
     # S3 Configuration
-    S3_BUCKET_NAME: ${env:S3_BUCKET_NAME_${self:provider.stage}, ${env:S3_BUCKET_NAME, 'ecommerce-images'}}
+    S3_BUCKET_NAME: ${env:S3_BUCKET_NAME_${self:provider.stage}, ${env:S3_BUCKET_NAME, 'devtestecom'}}
     
   # Stage-specific VPC Configuration
   vpc:
@@ -63,12 +63,12 @@ provider:
             - s3:DeleteObject
             - s3:PutObjectAcl
           Resource: 
-            - "arn:aws:s3:::${env:S3_BUCKET_NAME, 'ecommerce-images'}/*"
+            - "arn:aws:s3:::${env:S3_BUCKET_NAME, 'devtestecom'}/*"
         - Effect: Allow
           Action:
             - s3:ListBucket
           Resource: 
-            - "arn:aws:s3:::${env:S3_BUCKET_NAME, 'ecommerce-images'}"
+            - "arn:aws:s3:::${env:S3_BUCKET_NAME, 'devtestecom'}"
   
   # API Gateway configuration
   httpApi:

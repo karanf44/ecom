@@ -4,18 +4,43 @@ const checkoutService = require('../services/checkoutService');
 const processCheckout = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { shippingAddress, notes } = req.body;
+    const { shipping_address, notes } = req.body;
 
-    // Basic validation
-    if (!shippingAddress || shippingAddress.trim().length === 0) {
+    // Basic validation for shipping_address object and its fields
+    if (!shipping_address || typeof shipping_address !== 'object') {
       return res.status(400).json({
         success: false,
-        message: 'Shipping address is required'
+        message: 'Shipping address object is required'
       });
     }
 
+    const requiredFields = ['name', 'address_line_1', 'city', 'state', 'postal_code', 'country'];
+    const missingFields = [];
+    for (const field of requiredFields) {
+      if (!shipping_address[field] || String(shipping_address[field]).trim().length === 0) {
+        missingFields.push(field);
+      }
+    }
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required shipping fields: ${missingFields.join(', ')}`
+      });
+    }
+
+    // Sanitize shipping_address fields
+    const sanitizedShippingAddress = {};
+    for (const key in shipping_address) {
+      if (Object.hasOwnProperty.call(shipping_address, key) && typeof shipping_address[key] === 'string') {
+        sanitizedShippingAddress[key] = shipping_address[key].trim();
+      } else {
+        sanitizedShippingAddress[key] = shipping_address[key];
+      }
+    }
+    
     const checkoutData = {
-      shippingAddress: shippingAddress.trim(),
+      shippingAddress: sanitizedShippingAddress,
       notes: notes || ''
     };
 
@@ -24,9 +49,7 @@ const processCheckout = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Order placed successfully',
-      data: {
-        order
-      }
+      data: order
     });
   } catch (error) {
     console.error('Checkout process error:', error);

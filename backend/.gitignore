@@ -1,1 +1,54 @@
+# Dependencies
 /node_modules
+/.pnp
+.pnp.js
+
+# Serverless Framework specific
+.serverless/
+.webpack/
+*.js.map # Source maps from JS transpilation if applicable
+
+# Log files
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+# If you have a .env.production that IS committed, uncomment the line below
+# !.env.production
+
+# Test results & coverage
+coverage/
+.nyc_output/
+
+# IDE files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.sublime-workspace
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Build outputs (e.g., from TypeScript compilation if you use it)
+# dist/
+# build/
+
+# SQLite (if used locally for testing/dev)
+# *.sqlite3
+# *.sqlite
+
+# dotenv vault file
+.env.vault
+.env

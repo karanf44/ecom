@@ -5,7 +5,7 @@ class CartService {
   
   // Get user's cart
   async getCart(userId) {
-    const cart = await db('carts')
+    let cart = await db('carts')
       .where('user_id', userId)
       .first();
     
@@ -14,19 +14,33 @@ class CartService {
       return await this.createEmptyCart(userId);
     }
     
+    // Parse items if they exist and are a string
+    if (cart.items && typeof cart.items === 'string') {
+      try {
+        cart.items = JSON.parse(cart.items);
+      } catch (e) {
+        console.error('Failed to parse cart items from JSON for existing cart:', e, { cartItems: cart.items });
+        cart.items = []; // Default to empty array on parsing error
+      }
+    } else if (!Array.isArray(cart.items)) { // Ensure items is an array if null/undefined or not already parsed
+      cart.items = [];
+    }
+    
     return cart;
   }
   
   // Create empty cart for user
   async createEmptyCart(userId) {
-    const [cart] = await db('carts')
+    const initialItems = []; // Start with an actual array
+    const [insertedCart] = await db('carts')
       .insert({
         user_id: userId,
-        items: JSON.stringify([])
+        items: JSON.stringify(initialItems) // Stringify for DB
       })
       .returning('*');
     
-    return cart;
+    // Return with items as an array for consistency within the service
+    return { ...insertedCart, items: initialItems };
   }
   
   // Add item to cart
@@ -43,8 +57,8 @@ class CartService {
     }
     
     // Get current cart
-    const cart = await this.getCart(userId);
-    let items = cart.items || [];
+    const cart = await this.getCart(userId); // Ensures cart.items is an array
+    let items = Array.isArray(cart.items) ? cart.items : [];
     
     // Check if item already exists in cart
     const existingItemIndex = items.findIndex(item => item.productId === productId);
@@ -59,6 +73,13 @@ class CartService {
       }
       
       items[existingItemIndex].quantity = newQuantity;
+      // Update other product details in case they changed, though less likely for existing item
+      items[existingItemIndex].name = product.name;
+      items[existingItemIndex].price = product.price;
+      items[existingItemIndex].imageUrl = product.thumbnail_small_url || product.primary_image_url || null;
+      items[existingItemIndex].category = product.category;
+      items[existingItemIndex].stock = product.stock;
+
     } else {
       // Add new item to cart
       const cartItem = {
@@ -66,7 +87,9 @@ class CartService {
         quantity: quantity,
         name: product.name,
         price: product.price,
-        imageUrl: product.image_url
+        imageUrl: product.thumbnail_small_url || product.primary_image_url || null,
+        category: product.category,
+        stock: product.stock // Add stock here
       };
       items.push(cartItem);
     }
@@ -100,12 +123,16 @@ class CartService {
     }
     
     // Get current cart
-    const cart = await this.getCart(userId);
-    let items = cart.items || [];
+    const cart = await this.getCart(userId); // Ensures cart.items is an array
+    let items = Array.isArray(cart.items) ? cart.items : [];
     
     // Find and update the item
     const itemIndex = items.findIndex(item => item.productId === productId);
     if (itemIndex === -1) {
+      // If item not found, maybe add it? Or error?
+      // Current behavior: if user tries to update quantity of non-existent item.
+      // For now, let's follow previous logic of erroring if not found.
+      // Consider if this should behave like an "add" if not found.
       throw new Error('Item not found in cart');
     }
     
@@ -115,7 +142,9 @@ class CartService {
       quantity: quantity,
       name: product.name,
       price: product.price,
-      imageUrl: product.image_url
+      imageUrl: product.thumbnail_small_url || product.primary_image_url || null,
+      category: product.category,
+      stock: product.stock // Add stock here
     };
     
     // Update cart in database
@@ -167,7 +196,7 @@ class CartService {
   // Get cart summary (total items, total price)
   async getCartSummary(userId) {
     const cart = await this.getCart(userId);
-    const items = cart.items || [];
+    const items = Array.isArray(cart.items) ? cart.items : [];
     
     const summary = {
       totalItems: 0,

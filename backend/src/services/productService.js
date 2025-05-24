@@ -32,8 +32,9 @@ class ProductService {
           });
         }
         
-        // Add ordering and pagination
+        // Add ordering and pagination with performance optimization
         const products = await query
+          .select('*') // Explicit select for better performance
           .orderBy('created_at', 'desc')
           .limit(limit)
           .offset(offset);
@@ -271,7 +272,7 @@ class ProductService {
     }, 'getProductsByCategory');
   }
   
-  // Get product count for pagination
+  // Get product count with the same filtering logic
   async getProductCount(options = {}) {
     return executeDbQuery(async () => {
       return retryDatabaseOperation(async () => {
@@ -285,6 +286,7 @@ class ProductService {
         
         let query = db('products');
         
+        // Apply same filters as getAllProducts
         if (category) {
           query = query.where('category', category);
         }
@@ -296,18 +298,94 @@ class ProductService {
           });
         }
         
-        const result = await query.count('* as total');
-        const total = parseInt(result[0].total);
+        // Use count() for better performance
+        const result = await query.count('* as total').first();
+        const total = parseInt(result.total, 10);
         
         logger.debug('Product count retrieved', {
           service: 'product-service',
           operation: 'getProductCount',
-          total
+          total: total
         });
         
         return total;
       }, 'getProductCount');
     }, 'getProductCount');
+  }
+  
+  // OPTIMIZED: Get products and count in a single transaction
+  async getProductsWithCount(options = {}) {
+    return executeDbQuery(async () => {
+      return retryDatabaseOperation(async () => {
+        const { 
+          limit = 20, 
+          offset = 0, 
+          category, 
+          search,
+          minPrice,      // Destructure minPrice
+          maxPrice,      // Destructure maxPrice
+          sortBy = 'created_at', // Destructure sortBy with default
+          sortOrder = 'desc'   // Destructure sortOrder with default
+        } = options;
+        
+        logger.debug('Getting products with count (optimized)', {
+          service: 'product-service',
+          operation: 'getProductsWithCount',
+          options: { limit, offset, category, search, minPrice, maxPrice, sortBy, sortOrder } // Added to logger
+        });
+
+        // Use a transaction to ensure consistency and potentially better performance
+        const result = await db.transaction(async (trx) => {
+          let baseQuery = trx('products');
+          
+          // Apply filters
+          if (category) {
+            baseQuery = baseQuery.where('category', category);
+          }
+          
+          if (search) {
+            baseQuery = baseQuery.where(function() {
+              this.where('name', 'ilike', `%${search}%`)
+                  .orWhere('description', 'ilike', `%${search}%`);
+            });
+          }
+
+          // Add minPrice filter
+          if (typeof minPrice === 'number' && !isNaN(minPrice)) {
+            baseQuery = baseQuery.where('price', '>=', minPrice);
+          }
+
+          // Add maxPrice filter
+          if (typeof maxPrice === 'number' && !isNaN(maxPrice)) {
+            baseQuery = baseQuery.where('price', '<=', maxPrice);
+          }
+
+          // Get both products and count in parallel within the transaction
+          const [products, countResult] = await Promise.all([
+            baseQuery.clone()
+              .select('*')
+              .orderBy(sortBy, sortOrder) // Use dynamic sortBy and sortOrder
+              .limit(limit)
+              .offset(offset),
+            baseQuery.clone().count('* as total').first()
+          ]);
+
+          return {
+            products,
+            total: parseInt(countResult.total, 10)
+          };
+        });
+
+        logger.debug('Successfully retrieved products with count', {
+          service: 'product-service',
+          operation: 'getProductsWithCount',
+          count: result.products.length,
+          total: result.total
+        });
+
+        return result;
+      }, 'getProductsWithCount');
+    }, 'getProductsWithCount');
   }
   
   // Update product stock (useful for inventory management)
@@ -484,6 +562,40 @@ class ProductService {
         });
       }, 'bulkUpdateProducts');
     }, 'bulkUpdateProducts');
+  }
+
+  // Get all unique categories with product counts
+  async getCategories() {
+    return executeDbQuery(async () => {
+      return retryDatabaseOperation(async () => {
+        logger.debug('Getting all categories', {
+          service: 'product-service',
+          operation: 'getCategories'
+        });
+
+        const categories = await db('products')
+          .select('category')
+          .count('* as product_count')
+          .whereNotNull('category')
+          .groupBy('category')
+          .orderBy('product_count', 'desc');
+
+        // Transform the results to a cleaner format
+        const formattedCategories = categories.map(cat => ({
+          name: cat.category,
+          count: parseInt(cat.product_count, 10)
+        }));
+
+        logger.debug('Successfully retrieved categories', {
+          service: 'product-service',
+          operation: 'getCategories',
+          categoriesCount: formattedCategories.length,
+          categories: formattedCategories.map(c => `${c.name} (${c.count})`)
+        });
+
+        return formattedCategories;
+      }, 'getCategories');
+    }, 'getCategories');
   }
 }
 

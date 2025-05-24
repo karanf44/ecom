@@ -5,6 +5,9 @@ const productController = require('../controllers/productController');
 // GET /api/products - Get all products with pagination and filters
 router.get('/', productController.getAllProducts);
 
+// GET /api/products/categories - Get all unique categories
+router.get('/categories', productController.getCategories);
+
 // GET /api/products/category/:category - Get products by category
 router.get('/category/:category', productController.getProductsByCategory);
 

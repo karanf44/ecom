@@ -88,15 +88,10 @@ const addFunds = async (req, res) => {
       description || 'Funds added to wallet'
     );
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
-      message: 'Funds added successfully',
-      data: {
-        walletId: result.walletId,
-        newBalance: parseFloat(result.newBalance),
-        transactionAmount: parseFloat(result.transactionAmount),
-        transactionType: result.transactionType
-      }
+      message: 'Funds added successfully and transaction created',
+      data: result
     });
   } catch (error) {
     console.error('Add funds error:', error);

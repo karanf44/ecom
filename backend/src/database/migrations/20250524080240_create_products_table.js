@@ -13,8 +13,18 @@ exports.up = function(knex) {
     table.integer('stock').defaultTo(0);
     table.timestamps(true, true); // created_at, updated_at
     
-    // Indexes
+    // Performance indexes
     table.index('category');
+    table.index('created_at'); // For sorting by date
+    table.index('price'); // For price filtering/sorting
+    table.index('stock'); // For stock availability checks
+    
+    // Composite indexes for common query patterns
+    table.index(['category', 'created_at']); // Category + date sorting
+    table.index(['category', 'price']); // Category + price filtering
+    
+    // Text search indexes (if using PostgreSQL)
+    table.index(knex.raw('to_tsvector(\'english\', name || \' \' || COALESCE(description, \'\'))')); // Full-text search
   });
 };
 

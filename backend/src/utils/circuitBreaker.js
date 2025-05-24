@@ -3,13 +3,13 @@ const logger = require('./logger');
 
 // Circuit breaker configurations for different types of operations
 const circuitBreakerConfigs = {
-  // Database operations
+  // Database operations - more lenient for slow queries
   database: {
-    timeout: 5000, // 5 seconds
-    errorThresholdPercentage: 50, // Open circuit when 50% of requests fail
-    resetTimeout: 30000, // Try to close circuit after 30 seconds
-    rollingCountTimeout: 10000, // Rolling window of 10 seconds
-    rollingCountBuckets: 10, // Number of buckets in rolling window
+    timeout: 15000, // Increase to 15 seconds to accommodate slow queries
+    errorThresholdPercentage: 60, // More tolerant - open when 60% fail
+    resetTimeout: 60000, // Increase to 1 minute reset timeout
+    rollingCountTimeout: 30000, // Increase to 30 second rolling window
+    rollingCountBuckets: 6, // Reduce buckets for more stable measurements
     name: 'DatabaseCircuitBreaker',
     group: 'database'
   },
@@ -27,10 +27,10 @@ const circuitBreakerConfigs = {
 
   // Critical user operations (auth, checkout)
   critical: {
-    timeout: 3000, // 3 seconds - faster timeout for critical ops
-    errorThresholdPercentage: 30, // Lower threshold for critical operations
-    resetTimeout: 20000, // 20 seconds reset
-    rollingCountTimeout: 10000, // 10 second window
+    timeout: 8000, // Increase to 8 seconds for critical ops
+    errorThresholdPercentage: 40, // Slightly more tolerant
+    resetTimeout: 30000, // 30 seconds reset
+    rollingCountTimeout: 15000, // 15 second window
     rollingCountBuckets: 5,
     name: 'CriticalOperationCircuitBreaker',
     group: 'critical'

@@ -17,7 +17,14 @@ class CheckoutService {
 
       // Calculate total amount
       const totalAmount = cart.items.reduce((total, item) => {
-        return total + (parseFloat(item.price) * item.quantity);
+        // Ensure price and quantity are numbers
+        const price = parseFloat(item.price);
+        const quantity = parseInt(item.quantity, 10);
+        if (isNaN(price) || isNaN(quantity)) {
+            console.warn('Invalid price or quantity for item in cart during checkout:', item);
+            return total; // skip this item or handle error as appropriate
+        }
+        return total + (price * quantity);
       }, 0);
 
       // Check if user has sufficient wallet balance
@@ -32,26 +39,27 @@ class CheckoutService {
       const orderData = {
         user_id: userId,
         total_amount: totalAmount,
-        status: 'completed',
-        shipping_address: checkoutData.shippingAddress || 'Default Address',
-        order_items: JSON.stringify(cart.items.map(item => ({
-          productId: item.product_id,
+        status: 'confirmed',
+        shipping_details: JSON.stringify(checkoutData.shippingAddress),
+        items: JSON.stringify(cart.items.map(item => ({
+          productId: item.productId,
           name: item.name,
           price: parseFloat(item.price),
-          quantity: item.quantity,
-          total: parseFloat(item.price) * item.quantity
+          quantity: parseInt(item.quantity, 10),
+          imageUrl: item.imageUrl,
+          total: parseFloat(item.price) * parseInt(item.quantity, 10)
         })))
       };
 
       const [order] = await trx('orders')
         .insert(orderData)
-        .returning(['id', 'user_id', 'total_amount', 'status', 'shipping_address', 'order_items', 'created_at']);
+        .returning(['order_id', 'user_id', 'total_amount', 'status', 'shipping_details', 'items', 'created_at', 'updated_at']);
 
       // Deduct amount from wallet
       await walletService.deductFunds(
         userId, 
         totalAmount, 
-        `Order #${order.id} - Purchase`
+        `Order #${order.order_id} - Purchase`
       );
 
       // Clear the cart
@@ -61,12 +69,14 @@ class CheckoutService {
 
       // Return order details
       return {
-        orderId: order.id,
-        totalAmount: parseFloat(order.total_amount),
+        id: order.order_id,
+        user_id: order.user_id,
+        total_amount: parseFloat(order.total_amount),
         status: order.status,
-        shippingAddress: order.shipping_address,
-        items: JSON.parse(order.order_items),
-        createdAt: order.created_at
+        shipping_address: typeof order.shipping_details === 'string' ? JSON.parse(order.shipping_details) : order.shipping_details,
+        items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
+        created_at: order.created_at,
+        updated_at: order.updated_at
       };
 
     } catch (error) {
@@ -80,8 +90,8 @@ class CheckoutService {
   async getOrderById(orderId, userId) {
     try {
       const order = await db('orders')
-        .where({ id: orderId, user_id: userId })
-        .select(['id', 'user_id', 'total_amount', 'status', 'shipping_address', 'order_items', 'created_at', 'updated_at'])
+        .where({ order_id: orderId, user_id: userId })
+        .select(['order_id', 'user_id', 'total_amount', 'status', 'shipping_details', 'items', 'created_at', 'updated_at'])
         .first();
 
       if (!order) {
@@ -89,12 +99,12 @@ class CheckoutService {
       }
 
       return {
-        orderId: order.id,
+        id: order.order_id,
         userId: order.user_id,
         totalAmount: parseFloat(order.total_amount),
         status: order.status,
-        shippingAddress: order.shipping_address,
-        items: JSON.parse(order.order_items),
+        shippingAddress: typeof order.shipping_details === 'string' ? JSON.parse(order.shipping_details) : order.shipping_details,
+        items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
         createdAt: order.created_at,
         updatedAt: order.updated_at
       };
@@ -112,20 +122,22 @@ class CheckoutService {
         .orderBy('created_at', 'desc')
         .limit(limit)
         .offset(offset)
-        .select(['id', 'total_amount', 'status', 'shipping_address', 'order_items', 'created_at']);
+        .select(['order_id', 'user_id', 'total_amount', 'status', 'shipping_details', 'items', 'created_at', 'updated_at']);
 
       const totalOrders = await db('orders')
         .where('user_id', userId)
-        .count('id as count')
+        .count('order_id as count')
         .first();
 
       const formattedOrders = orders.map(order => ({
-        orderId: order.id,
-        totalAmount: parseFloat(order.total_amount),
+        id: order.order_id,
+        user_id: order.user_id,
+        total_amount: parseFloat(order.total_amount),
         status: order.status,
-        shippingAddress: order.shipping_address,
-        items: JSON.parse(order.order_items),
-        createdAt: order.created_at
+        shipping_address: typeof order.shipping_details === 'string' ? JSON.parse(order.shipping_details) : order.shipping_details,
+        items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
+        created_at: order.created_at,
+        updated_at: order.updated_at
       }));
 
       return {
@@ -153,20 +165,31 @@ class CheckoutService {
         throw new Error('Cart is empty');
       }
 
-      const totalAmount = cart.items.reduce((total, item) => {
-        return total + (parseFloat(item.price) * item.quantity);
+      const subtotal = cart.items.reduce((sum, item) => {
+        return sum + (item.price * item.quantity);
       }, 0);
 
+      // Example: Shipping logic (matches cart page hint)
+      const shippingCost = subtotal > 50 ? 0 : 5.99;
+      
+      // Example: Tax logic (e.g., 7% of subtotal)
+      const taxAmount = subtotal * 0.07;
+      
+      const grandTotalAmount = subtotal + shippingCost + taxAmount;
+
       const currentBalance = await walletService.getBalance(userId);
-      const hasSufficientBalance = currentBalance >= totalAmount;
+      const hasSufficientBalance = currentBalance >= grandTotalAmount;
 
       return {
         items: cart.items,
-        totalItems: cart.totalItems,
-        totalAmount: totalAmount,
-        currentWalletBalance: parseFloat(currentBalance),
+        totalItems: cart.summary?.totalItems || cart.items.reduce((sum, item) => sum + item.quantity, 0),
+        subtotal: parseFloat(subtotal.toFixed(2)),
+        shipping: parseFloat(shippingCost.toFixed(2)),
+        tax: parseFloat(taxAmount.toFixed(2)),
+        grandTotal: parseFloat(grandTotalAmount.toFixed(2)),
+        currentWalletBalance: parseFloat(currentBalance.toFixed(2)),
         hasSufficientBalance,
-        shortfall: hasSufficientBalance ? 0 : totalAmount - currentBalance
+        shortfall: hasSufficientBalance ? 0 : parseFloat((grandTotalAmount - currentBalance).toFixed(2))
       };
     } catch (error) {
       console.error('Error calculating checkout summary:', error);

@@ -25,6 +25,7 @@ const db = require('./config/knex');
 
 // Import routes
 const productRoutes = require('./routes/productRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 const authRoutes = require('./routes/authRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const walletRoutes = require('./routes/walletRoutes');
@@ -62,6 +63,9 @@ app.use(requestLogger);
 // Routes with specific guard rails
 app.use('/api/products', guardRails.api);
 app.use('/api/products', productRoutes);
+
+app.use('/api/categories', guardRails.api);
+app.use('/api/categories', categoryRoutes);
 
 app.use('/api/auth', guardRails.auth);
 app.use('/api/auth', authRoutes);

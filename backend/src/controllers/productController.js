@@ -9,7 +9,11 @@ class ProductController {
         page = 1, 
         limit = 20, 
         category, 
-        search 
+        search,
+        minPrice,
+        maxPrice,
+        sortBy,
+        sortOrder
       } = req.query;
       
       const offset = (page - 1) * limit;
@@ -17,27 +21,29 @@ class ProductController {
         limit: parseInt(limit),
         offset: parseInt(offset),
         category,
-        search
+        search,
+        minPrice: minPrice ? parseFloat(minPrice) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+        sortBy: sortBy || 'created_at',
+        sortOrder: sortOrder || 'desc'
       };
       
-      // Get products and total count for pagination
-      const [products, totalCount] = await Promise.all([
-        productService.getAllProducts(options),
-        productService.getProductCount({ category, search })
-      ]);
+      // Use optimized method that combines both queries in a single transaction
+      const result = await productService.getProductsWithCount(options);
       
-      const totalPages = Math.ceil(totalCount / limit);
+      const totalPages = Math.ceil(result.total / limit);
       
       res.status(200).json({
         success: true,
         data: {
-          products,
+          data: result.products,
           pagination: {
-            currentPage: parseInt(page),
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: result.total,
             totalPages,
-            totalCount,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1
+            hasNext: page < totalPages,
+            hasPrev: page > 1
           }
         }
       });
@@ -232,28 +238,28 @@ class ProductController {
       const offset = (page - 1) * limit;
       const options = {
         limit: parseInt(limit),
-        offset: parseInt(offset)
+        offset: parseInt(offset),
+        category // Include category in options for the optimized method
       };
       
-      const [products, totalCount] = await Promise.all([
-        productService.getProductsByCategory(category, options),
-        productService.getProductCount({ category })
-      ]);
+      // Use optimized method that combines both queries
+      const result = await productService.getProductsWithCount(options);
       
-      const totalPages = Math.ceil(totalCount / limit);
+      const totalPages = Math.ceil(result.total / limit);
       
       res.status(200).json({
         success: true,
         data: {
-          products,
-          category,
+          data: result.products,
           pagination: {
-            currentPage: parseInt(page),
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: result.total,
             totalPages,
-            totalCount,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1
-          }
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+          },
+          category
         }
       });
     } catch (error) {
@@ -261,6 +267,27 @@ class ProductController {
       res.status(500).json({
         success: false,
         message: 'Failed to fetch products by category',
+        error: error.message
+      });
+    }
+  }
+
+  // GET /api/categories - Get all unique categories
+  async getCategories(req, res) {
+    try {
+      const categories = await productService.getCategories();
+      
+      res.status(200).json({
+        success: true,
+        data: {
+          categories
+        }
+      });
+    } catch (error) {
+      console.error('Error in getCategories:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch categories',
         error: error.message
       });
     }

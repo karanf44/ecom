@@ -25,24 +25,27 @@ const getProducts = async (event, context) => {
     const category = queryParams.category;
     const search = queryParams.search;
     
-    // Get products and count
-    const [products, totalCount] = await Promise.all([
-      productService.getAllProducts({ limit, offset, category, search }),
-      productService.getProductCount({ category, search })
-    ]);
+    // Use optimized method that combines both queries
+    const result = await productService.getProductsWithCount({
+      limit,
+      offset,
+      category,
+      search
+    });
     
-    const totalPages = Math.ceil(totalCount / limit);
+    const totalPages = Math.ceil(result.total / limit);
     
     return createResponse(200, {
       success: true,
       data: {
-        products,
+        data: result.products,
         pagination: {
-          currentPage: page,
+          page,
+          limit,
+          total: result.total,
           totalPages,
-          totalCount,
-          hasNextPage: page < totalPages,
-          hasPrevPage: page > 1
+          hasNext: page < totalPages,
+          hasPrev: page > 1
         }
       }
     });

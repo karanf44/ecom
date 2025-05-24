@@ -7,24 +7,27 @@ const knexConfig = require('../../knexfile');
 // Get environment
 const environment = process.env.NODE_ENV || 'development';
 
-// Lambda-optimized configuration
-const lambdaConfig = {
+// Optimized configuration for better performance
+const optimizedConfig = {
   ...knexConfig[environment],
   pool: {
-    min: 0, // No minimum connections for Lambda
-    max: 1, // Single connection per Lambda instance
-    acquireTimeoutMillis: 30000,
-    createTimeoutMillis: 30000,
-    destroyTimeoutMillis: 5000,
-    idleTimeoutMillis: 30000,
+    min: environment === 'production' ? 1 : 2, // Keep at least 1 connection in prod
+    max: environment === 'production' ? 3 : 10, // Increase max connections
+    acquireTimeoutMillis: 60000, // Increase to 60 seconds
+    createTimeoutMillis: 30000, // Keep at 30 seconds
+    destroyTimeoutMillis: 5000, // Keep destroy timeout
+    idleTimeoutMillis: 300000, // Increase idle timeout to 5 minutes
     reapIntervalMillis: 1000,
-    createRetryIntervalMillis: 100,
+    createRetryIntervalMillis: 200, // Increase retry interval
     propagateCreateError: false
-  }
+  },
+  // Add query timeout to prevent long-running queries
+  asyncStackTraces: environment === 'development',
+  debug: environment === 'development'
 };
 
 // Create Knex instance
-const db = knex(lambdaConfig);
+const db = knex(optimizedConfig);
 
 // Test connection only in development
 if (environment === 'development') {
