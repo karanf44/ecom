@@ -21,7 +21,7 @@ const guardRails = require('./middleware/guardRails');
 const rateLimiting = require('./middleware/rateLimiting');
 
 // Import database connection (this will test the connection)
-const db = require('./config/database');
+const db = require('./config/knex');
 
 // Import routes
 const productRoutes = require('./routes/productRoutes');
@@ -124,7 +124,7 @@ app.get('/health', async (req, res) => {
 
   try {
     // Test database connection
-    await db.query('SELECT 1+1 as result');
+    await db.raw('SELECT 1+1 as result');
     checks.database = 'connected';
     
     const healthStatus = 'healthy';

@@ -203,21 +203,15 @@ const rateLimitConfig = {
 const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutes
   delayAfter: 50, // Allow 50 requests per 15 minutes without delay
-  delayMs: 500, // Add 500ms delay per request after delayAfter
+  delayMs: () => 500, // Add 500ms delay per request after delayAfter (updated for v2)
   maxDelayMs: 20000, // Maximum delay of 20 seconds
   skipFailedRequests: false,
   skipSuccessfulRequests: false,
   keyGenerator: (req) => {
     return req.user ? `slow:user:${req.user.id}` : `slow:ip:${req.ip}`;
   },
-  onLimitReached: (req, res, options) => {
-    logger.warn('Speed limit reached - requests being slowed down', {
-      service: 'rate-limiting',
-      type: 'speed-limit',
-      ip: req.ip,
-      userId: req.user?.id,
-      delay: options.delay
-    });
+  validate: {
+    delayMs: false // Disable delayMs validation warnings
   }
 });
 

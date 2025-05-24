@@ -4,8 +4,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
+    "start": "serverless offline",
+    "start:traditional": "node src/app.js",
+    "dev": "serverless offline",
+    "dev:traditional": "nodemon src/app.js",
     "serverless": "serverless offline",
     "deploy": "serverless deploy",
     "deploy:dev": "serverless deploy --stage dev",
@@ -25,8 +27,13 @@
     "observability:restart": "npm run observability:stop && npm run observability:start",
     "dev:full": "npm run observability:start && npm run dev",
     "metrics": "curl http://localhost:9090/metrics",
-    "health": "curl http://localhost:3002/health",
-    "logs:app": "tail -f logs/app-$(date +%Y-%m-%d).log"
+    "health": "curl http://localhost:3003/health",
+    "health:traditional": "curl http://localhost:3002/health",
+    "logs:app": "tail -f logs/app-$(date +%Y-%m-%d).log",
+    "test:guard-rails": "node test-guard-rails.js",
+    "test:plug-and-play": "node test-plug-and-play.js",
+    "validate:env": "node validate-env.js",
+    "validate:spof": "node validate-env.js && echo 'Run: npm run test:guard-rails to test circuit breakers'"
   },
   "keywords": [],
   "author": "",
