@@ -5,28 +5,43 @@ frameworkVersion: '4'
 provider:
   name: aws
   runtime: nodejs18.x
-  region: us-east-1
+  region: ${opt:region, 'us-east-1'}
   stage: ${opt:stage, 'dev'}
-  # Commenting out environment overrides that conflict with .env file
-  # environment:
-  #   NODE_ENV: ${self:provider.stage}
-  #   DB_HOST: ${env:DB_HOST, ''}
-  #   DB_PORT: ${env:DB_PORT, '5432'}
-  #   DB_NAME: ${env:DB_NAME, ''}
-  #   DB_USERNAME: ${env:DB_USERNAME, ''}
-  #   DB_PASSWORD: ${env:DB_PASSWORD, ''}
-  #   JWT_SECRET: ${env:JWT_SECRET, 'your-secret-key'}
-  #   JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN, '24h'}
   
-  # VPC Configuration for RDS access
+  # Stage-specific environment variables
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    STAGE: ${self:provider.stage}
+    
+    # Database Configuration (stage-specific)
+    DB_HOST: ${env:DB_HOST_${self:provider.stage}, ${env:DB_HOST}}
+    DB_PORT: ${env:DB_PORT, '5432'}
+    DB_NAME: ${env:DB_NAME_${self:provider.stage}, ${env:DB_NAME}}
+    DB_USERNAME: ${env:DB_USERNAME_${self:provider.stage}, ${env:DB_USERNAME}}
+    DB_PASSWORD: ${env:DB_PASSWORD_${self:provider.stage}, ${env:DB_PASSWORD}}
+    
+    # JWT Configuration
+    JWT_SECRET: ${env:JWT_SECRET_${self:provider.stage}, ${env:JWT_SECRET}}
+    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN, '24h'}
+    
+    # Redis Configuration (optional)
+    REDIS_URL: ${env:REDIS_URL_${self:provider.stage}, ${env:REDIS_URL, ''}}
+    
+    # Application Configuration
+    APP_VERSION: ${env:GITHUB_SHA, '1.0.0'}
+    
+    # S3 Configuration
+    S3_BUCKET_NAME: ${env:S3_BUCKET_NAME_${self:provider.stage}, ${env:S3_BUCKET_NAME, 'ecommerce-images'}}
+    
+  # Stage-specific VPC Configuration
   vpc:
     securityGroupIds:
-      - ${env:SECURITY_GROUP_ID, 'sg-default'}
+      - ${env:SECURITY_GROUP_ID_${self:provider.stage}, ${env:SECURITY_GROUP_ID}}
     subnetIds:
-      - ${env:SUBNET_ID_1, 'subnet-default1'}
-      - ${env:SUBNET_ID_2, 'subnet-default2'}
+      - ${env:SUBNET_ID_1_${self:provider.stage}, ${env:SUBNET_ID_1}}
+      - ${env:SUBNET_ID_2_${self:provider.stage}, ${env:SUBNET_ID_2}}
   
-  # IAM role statements
+  # Enhanced IAM permissions
   iam:
     role:
       statements:
@@ -35,6 +50,52 @@ provider:
             - rds:DescribeDBInstances
             - rds:DescribeDBClusters
           Resource: "*"
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:DeleteObject
+            - s3:PutObjectAcl
+          Resource: 
+            - "arn:aws:s3:::${env:S3_BUCKET_NAME, 'ecommerce-images'}/*"
+        - Effect: Allow
+          Action:
+            - s3:ListBucket
+          Resource: 
+            - "arn:aws:s3:::${env:S3_BUCKET_NAME, 'ecommerce-images'}"
+  
+  # API Gateway configuration
+  httpApi:
+    cors:
+      allowedOrigins:
+        - ${env:FRONTEND_URL_${self:provider.stage}, 'http://localhost:3000'}
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      allowCredentials: true
+  
+  # Deployment configuration
+  deploymentBucket:
+    name: ${self:service}-${self:provider.stage}-deployments
+    versioning: true
+    accelerate: true
+  
+  # Lambda function defaults
+  memorySize: ${self:custom.stages.${self:provider.stage}.memorySize, 512}
+  timeout: ${self:custom.stages.${self:provider.stage}.timeout, 30}
+  reservedConcurrency: ${self:custom.stages.${self:provider.stage}.reservedConcurrency, 10}
 
 # Package configuration
 package:
@@ -43,14 +104,47 @@ package:
     - '!.git/**'
     - '!*.md'
     - '!tests/**'
+    - '!.env*'
+    - '!docs/**'
+    - '!coverage/**'
 
 plugins:
   - serverless-offline
+  - serverless-plugin-warmup
 
 custom:
+  # Stage-specific configurations
+  stages:
+    dev:
+      memorySize: 256
+      timeout: 30
+      reservedConcurrency: 5
+      warmup: false
+    staging:
+      memorySize: 512
+      timeout: 30
+      reservedConcurrency: 10
+      warmup: true
+    prod:
+      memorySize: 1024
+      timeout: 30
+      reservedConcurrency: 50
+      warmup: true
+  
+  # Serverless Offline Configuration
   serverless-offline:
     httpPort: 3003
     host: 0.0.0.0
+    stage: dev
+  
+  # Warmup plugin configuration
+  warmup:
+    default:
+      enabled: ${self:custom.stages.${self:provider.stage}.warmup, false}
+      events:
+        - schedule: 'rate(5 minutes)'
+      concurrency: 1
+      timeout: 20
 
 functions:
   # Main API Gateway handler (fallback for all routes)
@@ -64,6 +158,8 @@ functions:
           path: /
           method: ANY
     timeout: 30
+    warmup:
+      enabled: ${self:custom.stages.${self:provider.stage}.warmup, false}
 #################################################################
   # Health check function
 ################################################################  
@@ -204,6 +300,42 @@ functions:
           path: /api/checkout/orders/{orderId}
           method: get
     timeout: 10
+################################################################
+  # Image Upload functions
+################################################################
+  uploadProductImage:
+    handler: src/handlers/productImageUpload.handler
+    events:
+      - httpApi:
+          path: /api/products/images/upload
+          method: post
+    timeout: 60
+    memorySize: 1024
+################################################################
+  deleteProductImage:
+    handler: src/handlers/productImageUpload.deleteHandler
+    events:
+      - httpApi:
+          path: /api/products/{productId}/image
+          method: delete
+    timeout: 30
+################################################################
+  uploadUserProfileImage:
+    handler: src/handlers/userImageUpload.uploadProfileImage
+    events:
+      - httpApi:
+          path: /api/users/profile/image
+          method: post
+    timeout: 60
+    memorySize: 512
+################################################################
+  deleteUserProfileImage:
+    handler: src/handlers/userImageUpload.deleteHandler
+    events:
+      - httpApi:
+          path: /api/users/profile/image
+          method: delete
+    timeout: 30
 ################################################################
 # CloudFormation resources
 ################################################################

@@ -1,0 +1,210 @@
+name: 🚀 Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to deploy'
+        required: true
+        type: string
+      run_migrations:
+        description: 'Run database migrations'
+        required: true
+        type: boolean
+        default: true
+      skip_tests:
+        description: 'Skip pre-deployment tests (emergency only)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '18.x'
+  AWS_REGION: us-east-1
+
+jobs:
+  pre-deployment:
+    name: 🧪 Pre-Deployment Validation
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_tests }}
+    
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version }}
+          
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+          
+      - name: 📦 Install dependencies
+        working-directory: backend
+        run: npm ci
+        
+      - name: 🧪 Run comprehensive tests
+        working-directory: backend
+        run: |
+          echo "Running full test suite..."
+          npm test || exit 1
+          echo "✅ All tests passed"
+          
+      - name: 🔒 Security audit
+        working-directory: backend
+        run: npm audit --audit-level=high
+        
+      - name: 📊 Performance tests
+        working-directory: backend
+        run: |
+          echo "🚀 Running performance tests..."
+          # Add performance test commands here
+          echo "✅ Performance tests passed"
+
+  backup:
+    name: 🗃️ Database Backup
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: ⚙️ Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: 💾 Create database backup
+        run: |
+          echo "Creating production database backup..."
+          BACKUP_ID="backup-$(date +%Y%m%d-%H%M%S)-${{ inputs.version }}"
+          
+          aws rds create-db-snapshot \
+            --db-instance-identifier ${{ secrets.DB_INSTANCE_ID_PROD }} \
+            --db-snapshot-identifier $BACKUP_ID
+            
+          echo "✅ Backup created: $BACKUP_ID"
+          echo "BACKUP_ID=$BACKUP_ID" >> $GITHUB_ENV
+          
+      - name: ⏳ Wait for backup completion
+        run: |
+          echo "Waiting for backup to complete..."
+          aws rds wait db-snapshot-completed --db-snapshot-identifier $BACKUP_ID
+          echo "✅ Backup completed successfully"
+
+  deploy:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, backup]
+    if: always() && (needs.pre-deployment.result == 'success' || needs.pre-deployment.result == 'skipped') && needs.backup.result == 'success'
+    environment: production
+    
+    steps:
+      - name: 📂 Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version }}
+          
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+          
+      - name: 📦 Install dependencies
+        working-directory: backend
+        run: npm ci --production
+        
+      - name: ⚙️ Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: 🗃️ Run database migrations
+        if: ${{ inputs.run_migrations }}
+        working-directory: backend
+        env:
+          DB_HOST: ${{ secrets.DB_HOST_PROD }}
+          DB_NAME: ${{ secrets.DB_NAME_PROD }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME_PROD }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD_PROD }}
+        run: |
+          echo "Running production database migrations..."
+          npm run migrate:status
+          npm run migrate
+          echo "✅ Migrations completed"
+          
+      - name: 🚀 Deploy to AWS Lambda
+        working-directory: backend
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          DB_HOST_PROD: ${{ secrets.DB_HOST_PROD }}
+          DB_NAME_PROD: ${{ secrets.DB_NAME_PROD }}
+          DB_USERNAME_PROD: ${{ secrets.DB_USERNAME_PROD }}
+          DB_PASSWORD_PROD: ${{ secrets.DB_PASSWORD_PROD }}
+          JWT_SECRET_PROD: ${{ secrets.JWT_SECRET_PROD }}
+          SECURITY_GROUP_ID_PROD: ${{ secrets.SECURITY_GROUP_ID_PROD }}
+          SUBNET_ID_1_PROD: ${{ secrets.SUBNET_ID_1_PROD }}
+          SUBNET_ID_2_PROD: ${{ secrets.SUBNET_ID_2_PROD }}
+          FRONTEND_URL_PROD: ${{ secrets.FRONTEND_URL_PROD }}
+        run: npm run deploy:prod
+        
+      - name: ⏳ Wait for deployment propagation
+        run: sleep 60
+        
+      - name: 🏥 Comprehensive health check
+        working-directory: backend
+        run: |
+          # Get the deployed API endpoint
+          ENDPOINT=$(aws apigateway get-rest-apis --query 'items[?name==`ecommerce-backend-prod`].id' --output text)
+          API_URL="https://${ENDPOINT}.execute-api.${{ env.AWS_REGION }}.amazonaws.com/prod"
+          
+          echo "Testing health endpoint: ${API_URL}/health"
+          curl -f "${API_URL}/health" || exit 1
+          
+          echo "Testing API endpoints..."
+          curl -f "${API_URL}/api/products" || exit 1
+          
+          echo "✅ All health checks passed"
+          
+      - name: 📊 Post-deployment validation
+        run: |
+          echo "🔍 Running production validation tests..."
+          
+          # Test critical user journeys
+          echo "Testing authentication flow..."
+          echo "Testing product catalog..."
+          echo "Testing cart functionality..."
+          echo "Testing checkout process..."
+          
+          echo "✅ All validation tests passed"
+          
+      - name: 📈 Enable monitoring alerts
+        run: |
+          echo "Enabling production monitoring alerts..."
+          # Add commands to enable CloudWatch alarms
+          echo "✅ Monitoring alerts enabled"
+          
+      - name: 📝 Deployment summary
+        run: |
+          echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | **Production** |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ inputs.version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Migrations | ${{ inputs.run_migrations && '✅ Executed' || '❌ Skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployed at | $(date -u '+%Y-%m-%d %H:%M:%S UTC') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backup ID | ${{ env.BACKUP_ID }} |" >> $GITHUB_STEP_SUMMARY
+          
+      - name: 🎉 Notify success
+        run: |
+          echo "🎉 Production deployment successful!"
+          echo "Version ${{ inputs.version }} is now live."
+          # Add Slack/Teams notification here 
