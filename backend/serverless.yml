@@ -1,0 +1,158 @@
+service: ecommerce-backend
+
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  # Commenting out environment overrides that conflict with .env file
+  # environment:
+  #   NODE_ENV: ${self:provider.stage}
+  #   DB_HOST: ${env:DB_HOST, ''}
+  #   DB_PORT: ${env:DB_PORT, '5432'}
+  #   DB_NAME: ${env:DB_NAME, ''}
+  #   DB_USERNAME: ${env:DB_USERNAME, ''}
+  #   DB_PASSWORD: ${env:DB_PASSWORD, ''}
+  #   JWT_SECRET: ${env:JWT_SECRET, 'your-secret-key'}
+  #   JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN, '24h'}
+  
+  # VPC Configuration for RDS access
+  vpc:
+    securityGroupIds:
+      - ${env:SECURITY_GROUP_ID, 'sg-default'}
+    subnetIds:
+      - ${env:SUBNET_ID_1, 'subnet-default1'}
+      - ${env:SUBNET_ID_2, 'subnet-default2'}
+  
+  # IAM role statements
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - rds:DescribeDBInstances
+            - rds:DescribeDBClusters
+          Resource: "*"
+
+# Package configuration
+package:
+  patterns:
+    - '!node_modules/.cache/**'
+    - '!.git/**'
+    - '!*.md'
+    - '!tests/**'
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3003
+    host: 0.0.0.0
+
+functions:
+  # Main API Gateway handler (fallback for all routes)
+  api:
+    handler: src/lambda.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+      - httpApi:
+          path: /
+          method: ANY
+    timeout: 30
+
+  # Health check function
+  health:
+    handler: src/handlers/health.handler
+    events:
+      - httpApi:
+          path: /health
+          method: get
+    timeout: 30
+
+  # Authentication functions
+  register:
+    handler: src/handlers/auth.register
+    events:
+      - httpApi:
+          path: /api/auth/register
+          method: post
+    timeout: 15
+
+  login:
+    handler: src/handlers/auth.login
+    events:
+      - httpApi:
+          path: /api/auth/login
+          method: post
+    timeout: 15
+
+  # Product functions
+  getProducts:
+    handler: src/handlers/products.getProducts
+    events:
+      - httpApi:
+          path: /api/products
+          method: get
+    timeout: 15
+
+  getProduct:
+    handler: src/handlers/products.getProduct
+    events:
+      - httpApi:
+          path: /api/products/{id}
+          method: get
+    timeout: 10
+
+  createProduct:
+    handler: src/handlers/products.createProduct
+    events:
+      - httpApi:
+          path: /api/products
+          method: post
+    timeout: 15
+
+  # Cart functions
+  getCart:
+    handler: src/handlers/cart.getCart
+    events:
+      - httpApi:
+          path: /api/cart
+          method: get
+    timeout: 15
+
+  addToCart:
+    handler: src/handlers/cart.addToCart
+    events:
+      - httpApi:
+          path: /api/cart/add
+          method: post
+    timeout: 15
+
+# CloudFormation resources
+resources:
+  Resources:
+    # API Gateway CORS configuration
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'RestApiApigEvent'
+    
+    GatewayResponseDefault5XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: 'RestApiApigEvent' 
