@@ -17,6 +17,7 @@ import { Button, Input } from '@/components/ui';
 import { useAuthStore } from '@/context/authStore';
 import { useCartStore } from '@/context/cartStore';
 import { formatCurrency } from '@/utils';
+import content from '@/content/header.json'; // Import the JSON data
 
 const Header: React.FC = () => {
   const router = useRouter();
@@ -47,9 +48,10 @@ const Header: React.FC = () => {
     router.push('/');
   };
 
-  const navigation = [
-    { name: 'Products', href: '/products' },
-  ];
+  // Navigation items are now from content.navigation
+  // const navigation = [
+  //   { name: 'Products', href: '/products' },
+  // ];
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
@@ -61,13 +63,13 @@ const Header: React.FC = () => {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Package className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">EcomStore</span>
+              <span className="text-xl font-bold text-gray-900">{content.logoText}</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => (
+            {content.navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -85,9 +87,9 @@ const Header: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   type="search"
-                  placeholder="Search products..."
+                  placeholder={content.searchPlaceholder}
                   value={searchQuery}
-                  onChange={setSearchQuery}
+                  onChange={setSearchQuery} // Assuming setSearchQuery comes from a useState hook for Input
                   className="pl-10 pr-4"
                 />
               </div>
@@ -151,7 +153,7 @@ const Header: React.FC = () => {
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       <Wallet className="w-4 h-4 mr-2" />
-                      Wallet
+                      {content.userMenu.wallet}
                     </Link>
                     <hr className="my-1" />
                     <button
@@ -159,7 +161,7 @@ const Header: React.FC = () => {
                       className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
-                      Logout
+                      {content.userMenu.logout}
                     </button>
                   </div>
                 )}
@@ -171,7 +173,7 @@ const Header: React.FC = () => {
                   size="sm"
                   onClick={openLoginModal}
                 >
-                  Sign In
+                  {content.auth.signIn}
                 </Button>
               </div>
             )}
@@ -196,9 +198,9 @@ const Header: React.FC = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     type="search"
-                    placeholder="Search products..."
+                    placeholder={content.searchPlaceholder} // Re-use placeholder
                     value={searchQuery}
-                    onChange={setSearchQuery}
+                    onChange={setSearchQuery} // Assuming setSearchQuery is a state setter
                     className="pl-10 pr-4"
                   />
                 </div>
@@ -207,7 +209,7 @@ const Header: React.FC = () => {
 
             {/* Mobile Navigation Links */}
             <nav className="space-y-1">
-              {navigation.map((item) => (
+              {content.navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
@@ -225,7 +227,7 @@ const Header: React.FC = () => {
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-600"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Wallet
+                    {content.mobileNav.wallet} {/* Use content from JSON */}
                   </Link>
                 </>
               )}

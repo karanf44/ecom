@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button, Input } from '@/components/ui';
 import { useAuthStore } from '@/context/authStore';
-import { LoginRequest } from '@/types';
+// import { LoginRequest } from '@/types';
 import toast from 'react-hot-toast';
 
 interface LoginFormProps {
@@ -24,7 +24,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSwitchView }) => {
     try {
       await login({ email, password });
       // The modal will be closed automatically by the authStore on successful login
-    } catch (error) {
+    } catch {
       // Error toast is handled by authStore's login method
     }
   };

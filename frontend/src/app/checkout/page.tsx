@@ -12,6 +12,7 @@ import { formatCurrency } from '@/utils';
 import { useCartStore } from '@/context/cartStore';
 import apiService from '@/services/api';
 import toast from 'react-hot-toast';
+import content from '@/content/checkoutPage.json'; // Import the JSON data
 
 interface CheckoutSummary {
   items: any[];
@@ -39,18 +40,16 @@ const CheckoutPage: React.FC = () => {
     city: '',
     state: '',
     postal_code: '',
-    country: 'US',
+    country: 'US', // Assuming US is default, this could also be in content if it varies
     phone: '',
   });
 
-  // Redirect if cart is empty
   useEffect(() => {
     if (items.length === 0) {
       router.push('/cart');
     }
   }, [items.length, router]);
 
-  // Fetch checkout summary from API
   useEffect(() => {
     const fetchCheckoutSummary = async () => {
       try {
@@ -59,7 +58,7 @@ const CheckoutPage: React.FC = () => {
         setCheckoutSummary(summary);
       } catch (error) {
         console.error('Failed to fetch checkout summary:', error);
-        toast.error('Failed to load checkout summary. Please try again.');
+        toast.error(content.toasts.loadSummaryError);
         router.push('/cart');
       } finally {
         setLoading(false);
@@ -87,24 +86,19 @@ const CheckoutPage: React.FC = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error('Please fill in all required fields');
+      toast.error(content.toasts.requiredFieldsError);
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      // Process checkout via API
       const order = await apiService.processCheckout(shippingAddress);
-      
-      // Clear cart after successful order
       clearCart();
-      
-      // Show success message and redirect
-      toast.success(`Order ${order.id} placed successfully!`);
+      toast.success(`${content.toasts.orderSuccessPrefix}${order.id}${content.toasts.orderSuccessSuffix}`);
       router.push('/products');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to place order';
+      const message = error instanceof Error ? error.message : content.toasts.orderError;
       toast.error(message);
     } finally {
       setIsProcessing(false);
@@ -112,7 +106,7 @@ const CheckoutPage: React.FC = () => {
   };
 
   if (items.length === 0) {
-    return null; // Will redirect in useEffect
+    return null;
   }
 
   if (loading || !checkoutSummary) {
@@ -134,7 +128,6 @@ const CheckoutPage: React.FC = () => {
     <MainLayout>
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Page Header */}
           <div className="mb-8">
             <div className="flex items-center space-x-4 mb-4">
               <Link 
@@ -142,74 +135,62 @@ const CheckoutPage: React.FC = () => {
                 className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
-                Back to Cart
+                {content.pageHeader.backToCart}
               </Link>
             </div>
-            
-            <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
-            <p className="text-gray-600 mt-1">
-              Complete your order
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">{content.pageHeader.heading}</h1>
+            <p className="text-gray-600 mt-1">{content.pageHeader.subheading}</p>
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Column - Forms */}
               <div className="space-y-6">
-                {/* Shipping Address */}
                 <Card className="p-6">
                   <div className="flex items-center space-x-2 mb-4">
                     <MapPin className="w-5 h-5 text-gray-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Shipping Address</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{content.shippingAddress.heading}</h3>
                   </div>
-                  
                   <div className="space-y-4">
                     <Input
-                      label="Full Name"
+                      label={content.shippingAddress.fullNameLabel}
                       value={shippingAddress.name}
                       onChange={(value) => handleAddressChange('name', value)}
                       required
                     />
-                    
                     <Input
-                      label="Address Line 1"
+                      label={content.shippingAddress.addressLine1Label}
                       value={shippingAddress.address_line_1}
                       onChange={(value) => handleAddressChange('address_line_1', value)}
                       required
                     />
-                    
                     <Input
-                      label="Address Line 2 (Optional)"
+                      label={content.shippingAddress.addressLine2Label}
                       value={shippingAddress.address_line_2}
                       onChange={(value) => handleAddressChange('address_line_2', value)}
                     />
-                    
                     <div className="grid grid-cols-2 gap-4">
                       <Input
-                        label="City"
+                        label={content.shippingAddress.cityLabel}
                         value={shippingAddress.city}
                         onChange={(value) => handleAddressChange('city', value)}
                         required
                       />
-                      
                       <Input
-                        label="State"
+                        label={content.shippingAddress.stateLabel}
                         value={shippingAddress.state}
                         onChange={(value) => handleAddressChange('state', value)}
                         required
                       />
                     </div>
-                    
                     <div className="grid grid-cols-2 gap-4">
                       <Input
-                        label="Postal Code"
+                        label={content.shippingAddress.postalCodeLabel}
                         value={shippingAddress.postal_code}
                         onChange={(value) => handleAddressChange('postal_code', value)}
                         required
                       />
-                      
                       <Input
-                        label="Phone"
+                        label={content.shippingAddress.phoneLabel}
                         type="tel"
                         value={shippingAddress.phone}
                         onChange={(value) => handleAddressChange('phone', value)}
@@ -219,129 +200,90 @@ const CheckoutPage: React.FC = () => {
                   </div>
                 </Card>
 
-                {/* Payment Method */}
                 <Card className="p-6">
                   <div className="flex items-center space-x-2 mb-4">
                     <CreditCard className="w-5 h-5 text-gray-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Payment Method</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{content.paymentMethod.heading}</h3>
                   </div>
-                  
                   <div className="space-y-3">
                     {/* <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="card"
-                        checked={paymentMethod === 'card'}
-                        onChange={(e) => setPaymentMethod(e.target.value as 'card')}
-                        className="w-4 h-4 text-blue-600"
-                      />
+                      <input type="radio" name="payment" value="card" checked={paymentMethod === 'card'} onChange={(e) => setPaymentMethod(e.target.value as 'card')} className="w-4 h-4 text-blue-600" />
                       <CreditCard className="w-5 h-5 text-gray-600" />
                       <div>
-                        <div className="font-medium">Credit/Debit Card</div>
-                        <div className="text-sm text-gray-600">Pay with your card</div>
+                        <div className="font-medium">{content.paymentMethod.cardLabel}</div>
+                        <div className="text-sm text-gray-600">{content.paymentMethod.cardDescription}</div>
                       </div>
                     </label> */}
-                    
                     <label className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="wallet"
-                        checked={paymentMethod === 'wallet'}
-                        onChange={(e) => setPaymentMethod(e.target.value as 'wallet')}
-                        className="w-4 h-4 text-blue-600"
-                      />
+                      <input type="radio" name="payment" value="wallet" checked={paymentMethod === 'wallet'} onChange={(e) => setPaymentMethod(e.target.value as 'wallet')} className="w-4 h-4 text-blue-600" />
                       <Wallet className="w-5 h-5 text-gray-600" />
                       <div>
-                        <div className="font-medium">Wallet Balance</div>
-                        <div className="text-sm text-gray-600">Pay with wallet balance</div>
+                        <div className="font-medium">{content.paymentMethod.walletLabel}</div>
+                        <div className="text-sm text-gray-600">{content.paymentMethod.walletDescription}</div>
                       </div>
                     </label>
                   </div>
-                  
-                  {/* {paymentMethod === 'card' && (
-                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-800">
-                        Card payment integration would be implemented here (Stripe, PayPal, etc.)
-                      </p>
-                    </div>
-                  )} */}
-                  
-                  {paymentMethod === 'wallet' && (
-                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-sm text-green-800">
-                        Payment will be deducted from your wallet balance
-                      </p>
-                    </div>
-                  )}
                 </Card>
               </div>
 
               {/* Right Column - Order Summary */}
               <div>
-                <div className="sticky top-4">
-                  <Card className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
-                    
-                    {/* Order Items */}
-                    <div className="space-y-3 mb-6">
-                      {checkoutSummary.items.map((item) => (
-                        <CartItem 
-                          key={item.productId}
-                          item={item}
-                          showControls={false}
-                          className="bg-white border-none shadow-none p-0"
-                        />
-                      ))}
+                <Card className="p-6 sticky top-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">{content.orderSummary.heading}</h3>
+                  <div className="space-y-2 mb-4">
+                    {items.map(item => (
+                      <CartItem key={item.productId} item={item} showControls={false} />
+                    ))}
+                  </div>
+                  <div className="border-t border-gray-200 pt-4 space-y-2">
+                    <div className="flex justify-between">
+                      <span>{content.orderSummary.subtotalLabel}</span>
+                      <span>{formatCurrency(checkoutSummary.subtotal)}</span>
                     </div>
-
-                    {/* Cost Breakdown */}
-                    <div className="space-y-2 py-4 border-t border-gray-200">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Subtotal</span>
-                        <span className="text-gray-900">{formatCurrency(checkoutSummary.subtotal)}</span>
-                      </div>
-                      
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Shipping</span>
-                        <span className="text-gray-900">
-                          {checkoutSummary.shipping === 0 ? (
-                            <span className="text-green-600">Free</span>
-                          ) : (
-                            formatCurrency(checkoutSummary.shipping)
-                          )}
-                        </span>
-                      </div>
-                      
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Tax</span>
-                        <span className="text-gray-900">{formatCurrency(checkoutSummary.tax)}</span>
-                      </div>
+                    <div className="flex justify-between">
+                      <span>{content.orderSummary.shippingLabel}</span>
+                      <span>{formatCurrency(checkoutSummary.shipping)}</span>
                     </div>
-
-                    {/* Total */}
-                    <div className="flex justify-between text-lg font-semibold pt-4 border-t border-gray-200 mb-6">
-                      <span>Total</span>
+                    <div className="flex justify-between">
+                      <span>{content.orderSummary.taxLabel}</span>
+                      <span>{formatCurrency(checkoutSummary.tax)}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-semibold">
+                      <span>{content.orderSummary.grandTotalLabel}</span>
                       <span>{formatCurrency(checkoutSummary.grandTotal)}</span>
                     </div>
+                  </div>
 
-                    {/* Place Order Button */}
-                    <Button
-                      type="submit"
-                      disabled={!validateForm() || isProcessing}
-                      loading={isProcessing}
-                      className="w-full"
-                      size="lg"
-                    >
-                      {isProcessing ? 'Processing...' : `Place Order • ${formatCurrency(checkoutSummary.grandTotal)}`}
-                    </Button>
+                  {paymentMethod === 'wallet' && (
+                    <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
+                      <div className="flex justify-between">
+                        <span>{content.orderSummary.currentWalletBalanceLabel}</span>
+                        <span>{formatCurrency(checkoutSummary.currentWalletBalance)}</span>
+                      </div>
+                      {!checkoutSummary.hasSufficientBalance ? (
+                        <p className="text-red-600 text-sm">
+                          {content.orderSummary.walletShortfallPrefix}
+                          {formatCurrency(checkoutSummary.shortfall)}
+                          {content.orderSummary.walletShortfallSuffix}
+                        </p>
+                      ) : (
+                        <div className="flex justify-between">
+                          <span>{content.orderSummary.remainingWalletBalanceLabel}</span>
+                          <span>{formatCurrency(checkoutSummary.currentWalletBalance - checkoutSummary.grandTotal)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                    <p className="text-xs text-gray-500 text-center mt-3">
-                      By placing your order, you agree to our Terms of Service and Privacy Policy
-                    </p>
-                  </Card>
-                </div>
+                  <Button
+                    type="submit"
+                    className="w-full mt-6"
+                    disabled={isProcessing || (paymentMethod === 'wallet' && !checkoutSummary.hasSufficientBalance)}
+                    size="lg"
+                  >
+                    {isProcessing ? content.actionButton.processing : content.actionButton.placeOrder}
+                  </Button>
+                </Card>
               </div>
             </div>
           </form>

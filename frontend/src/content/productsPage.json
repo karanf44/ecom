@@ -1,0 +1,38 @@
+{
+  "pageHeader": {
+    "heading": "Products",
+    "subheading": "Discover amazing products at unbeatable prices"
+  },
+  "resultsCount": {
+    "showing": "Showing ",
+    "of": " of ",
+    "products": " products"
+  },
+  "toasts": {
+    "loadError": "Failed to load products. Please try again.",
+    "wishlistComingSoon": "Wishlist feature coming soon!"
+  },
+  "filter": {
+    "heading": "Filters",
+    "clearButton": "Clear",
+    "categoryLabel": "Category",
+    "minPriceLabel": "Min Price",
+    "maxPriceLabel": "Max Price",
+    "sortByLabel": "Sort By",
+    "categorySelect": {
+      "loading": "Loading...",
+      "allCategories": "All Categories"
+    },
+    "minPricePlaceholder": "$0",
+    "maxPricePlaceholder": "$1000",
+    "sortOptions": [
+      { "value": "created_at|desc", "label": "Newest First" },
+      { "value": "created_at|asc", "label": "Oldest First" },
+      { "value": "name|asc", "label": "Name (A-Z)" },
+      { "value": "name|desc", "label": "Name (Z-A)" },
+      { "value": "price|asc", "label": "Price (Low to High)" },
+      { "value": "price|desc", "label": "Price (High to Low)" }
+    ],
+    "loadCategoriesError": "Failed to load categories"
+  }
+} 

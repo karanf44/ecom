@@ -5,57 +5,32 @@ import Link from 'next/link';
 import { ArrowRight, ShoppingBag, Shield, Truck, Headphones } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import MainLayout from '@/components/layout/MainLayout';
+import content from '@/content/homePage.json'; // Import the JSON data
 
 const HomePage: React.FC = () => {
-  const features = [
-    {
-      icon: ShoppingBag,
-      title: 'Quality Products',
-      description: 'Curated selection of high-quality products from trusted brands.',
-    },
-    {
-      icon: Truck,
-      title: 'Fast Shipping',
-      description: 'Free shipping on orders over $50. Express delivery available.',
-    },
-    {
-      icon: Shield,
-      title: 'Secure Shopping',
-      description: 'Your data is protected with industry-standard encryption.',
-    },
-    {
-      icon: Headphones,
-      title: '24/7 Support',
-      description: 'Our customer service team is here to help you anytime.',
-    },
-  ];
+  // The features and categories arrays will now primarily use data from the JSON
+  // We keep the icon mapping here as JSON cannot store component references directly.
+  const featuresWithIcons = content.features.items.map(item => {
+    let icon;
+    switch (item.title) {
+      case 'Quality Products': icon = ShoppingBag; break;
+      case 'Fast Shipping': icon = Truck; break;
+      case 'Secure Shopping': icon = Shield; break;
+      case '24/7 Support': icon = Headphones; break;
+      default: icon = ShoppingBag; // Default icon
+    }
+    return { ...item, icon };
+  });
 
-  const categories = [
-    {
-      name: 'Electronics',
-      image: '/api/placeholder/300/200',
-      href: '/products?category=electronics',
-      description: 'Latest gadgets and tech',
-    },
-    {
-      name: 'Fashion',
-      image: '/api/placeholder/300/200',
-      href: '/products?category=clothing',
-      description: 'Trendy clothing and accessories',
-    },
-    {
-      name: 'Home & Garden',
-      image: '/api/placeholder/300/200',
-      href: '/products?category=home',
-      description: 'Everything for your home',
-    },
-    {
-      name: 'Books',
-      image: '/api/placeholder/300/200',
-      href: '/products?category=books',
-      description: 'Knowledge and entertainment',
-    },
-  ];
+  // Assuming categories in JSON match the structure needed by the component,
+  // but href and image might still be managed here or enhanced if they become dynamic.
+  const categoriesData = content.categories.items.map(item => ({
+    ...item,
+    // Example: Potentially construct href or map image paths if needed
+    // For now, assuming these are still hardcoded or managed elsewhere if not in JSON
+    image: '/api/placeholder/300/200', // This was in the original code
+    href: `/products?category=${item.name.toLowerCase().replace(' & ', '-')}` // Dynamic href based on name
+  }));
 
   return (
     <MainLayout>
@@ -64,12 +39,11 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Welcome to{' '}
+              {content.hero.heading.split('EcomStore')[0]}
               <span className="text-yellow-300">EcomStore</span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
-              Discover amazing products at unbeatable prices. Shop with confidence 
-              and enjoy fast, secure delivery to your doorstep.
+              {content.hero.subheading}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -77,7 +51,7 @@ const HomePage: React.FC = () => {
                 className="bg-white text-blue-600 hover:bg-gray-100"
                 onClick={() => window.location.href = '/products'}
               >
-                Shop Now
+                {content.hero.shopNowButton}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </div>
@@ -90,16 +64,15 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose EcomStore?
+              {content.features.heading}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We're committed to providing the best shopping experience with 
-              quality products, fast delivery, and exceptional customer service.
+              {content.features.subheading}
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => {
+            {featuresWithIcons.map((feature, index) => {
               const Icon = feature.icon;
               return (
                 <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow duration-300">
@@ -124,20 +97,20 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Shop by Category
+              {content.categories.heading}
             </h2>
             <p className="text-lg text-gray-600">
-              Explore our wide range of product categories
+              {content.categories.subheading}
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categories.map((category, index) => (
+            {categoriesData.map((category, index) => (
               <Link key={index} href={category.href}>
                 <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                   <div className="aspect-w-16 aspect-h-9">
                     <img
-                      src={category.image}
+                      src={category.image} // Still using placeholder from original code
                       alt={category.name}
                       className="w-full h-48 object-cover"
                     />
@@ -161,10 +134,10 @@ const HomePage: React.FC = () => {
       <section className="py-16 bg-blue-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Start Shopping?
+            {content.cta.heading}
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Browse our amazing products and add your favorites to your cart for a seamless shopping experience.
+            {content.cta.subheading}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
@@ -172,7 +145,7 @@ const HomePage: React.FC = () => {
               className="bg-white text-blue-600 hover:bg-gray-100"
               onClick={() => window.location.href = '/products'}
             >
-              Browse Products
+              {content.cta.browseButton}
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Button
@@ -181,7 +154,7 @@ const HomePage: React.FC = () => {
               className="border-white bg-transparent text-white hover:bg-white hover:text-blue-600"
               onClick={() => window.location.href = '/cart'}
             >
-              View Cart
+              {content.cta.viewCartButton}
             </Button>
           </div>
         </div>

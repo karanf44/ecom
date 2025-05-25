@@ -15,7 +15,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ 
   children, 
-  showFooter = true,
+  // showFooter = true, // This was marked as unused
   className = '' 
 }) => {
   const { initialize: initializeAuth, isAuthenticated } = useAuthStore();

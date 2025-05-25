@@ -1,0 +1,46 @@
+{
+  "pageHeader": {
+    "backToCart": "Back to Cart",
+    "heading": "Checkout",
+    "subheading": "Complete your order"
+  },
+  "toasts": {
+    "loadSummaryError": "Failed to load checkout summary. Please try again.",
+    "requiredFieldsError": "Please fill in all required fields",
+    "orderSuccessPrefix": "Order ",
+    "orderSuccessSuffix": " placed successfully!",
+    "orderError": "Failed to place order"
+  },
+  "shippingAddress": {
+    "heading": "Shipping Address",
+    "fullNameLabel": "Full Name",
+    "addressLine1Label": "Address Line 1",
+    "addressLine2Label": "Address Line 2 (Optional)",
+    "cityLabel": "City",
+    "stateLabel": "State",
+    "postalCodeLabel": "Postal Code",
+    "phoneLabel": "Phone"
+  },
+  "paymentMethod": {
+    "heading": "Payment Method",
+    "walletLabel": "Wallet",
+    "walletDescription": "Use your EcomStore wallet balance",
+    "cardLabel": "Credit/Debit Card",
+    "cardDescription": "Pay with your card"
+  },
+  "orderSummary": {
+    "heading": "Order Summary",
+    "subtotalLabel": "Subtotal",
+    "shippingLabel": "Shipping",
+    "taxLabel": "Tax (estimated)",
+    "grandTotalLabel": "Grand Total",
+    "currentWalletBalanceLabel": "Current Wallet Balance",
+    "remainingWalletBalanceLabel": "Remaining after order",
+    "walletShortfallPrefix": "You need an additional ",
+    "walletShortfallSuffix": " to use wallet."
+  },
+  "actionButton": {
+    "placeOrder": "Place Order",
+    "processing": "Processing..."
+  }
+} 

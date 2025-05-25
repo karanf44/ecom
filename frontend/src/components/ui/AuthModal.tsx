@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import { UserPlus, LogIn } from 'lucide-react';
 import { Modal, Button } from '@/components/ui';
 import { useAuthStore } from '@/context/authStore';
@@ -12,7 +12,7 @@ import RegisterForm from '../auth/RegisterForm';
 type AuthView = 'options' | 'login' | 'register';
 
 const AuthModal: React.FC = () => {
-  const router = useRouter();
+  // const router = useRouter();
   const { isLoginModalOpen, closeLoginModal } = useAuthStore();
   const [authView, setAuthView] = useState<AuthView>('options');
 

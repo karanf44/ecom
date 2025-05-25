@@ -1,0 +1,19 @@
+{
+  "companyInfo": {
+    "name": "EcomStore",
+    "description": "Your one-stop destination for quality products at unbeatable prices. Shop with confidence and enjoy our seamless e-commerce experience."
+  },
+  "categories": {
+    "heading": "Categories",
+    "items": [
+      { "name": "Electronics", "href": "/products?category=electronics" },
+      { "name": "Clothing", "href": "/products?category=clothing" },
+      { "name": "Books", "href": "/products?category=books" },
+      { "name": "Home & Garden", "href": "/products?category=home" }
+    ]
+  },
+  "copyright": {
+    "textBeforeYear": "© ",
+    "textAfterYear": " EcomStore. All rights reserved."
+  }
+} 

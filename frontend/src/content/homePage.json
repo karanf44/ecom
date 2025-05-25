@@ -1,0 +1,57 @@
+{
+  "hero": {
+    "heading": "Welcome to EcomStore",
+    "subheading": "Discover amazing products at unbeatable prices. Shop with confidence and enjoy fast, secure delivery to your doorstep.",
+    "shopNowButton": "Shop Now"
+  },
+  "features": {
+    "heading": "Why Choose EcomStore?",
+    "subheading": "We're committed to providing the best shopping experience with quality products, fast delivery, and exceptional customer service.",
+    "items": [
+      {
+        "title": "Quality Products",
+        "description": "Curated selection of high-quality products from trusted brands."
+      },
+      {
+        "title": "Fast Shipping",
+        "description": "Free shipping on orders over $50. Express delivery available."
+      },
+      {
+        "title": "Secure Shopping",
+        "description": "Your data is protected with industry-standard encryption."
+      },
+      {
+        "title": "24/7 Support",
+        "description": "Our customer service team is here to help you anytime."
+      }
+    ]
+  },
+  "categories": {
+    "heading": "Shop by Category",
+    "subheading": "Explore our wide range of product categories",
+    "items": [
+      {
+        "name": "Electronics",
+        "description": "Latest gadgets and tech"
+      },
+      {
+        "name": "Fashion",
+        "description": "Trendy clothing and accessories"
+      },
+      {
+        "name": "Home & Garden",
+        "description": "Everything for your home"
+      },
+      {
+        "name": "Books",
+        "description": "Knowledge and entertainment"
+      }
+    ]
+  },
+  "cta": {
+    "heading": "Ready to Start Shopping?",
+    "subheading": "Browse our amazing products and add your favorites to your cart for a seamless shopping experience.",
+    "browseButton": "Browse Products",
+    "viewCartButton": "View Cart"
+  }
+} 

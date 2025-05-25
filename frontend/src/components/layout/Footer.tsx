@@ -1,18 +1,20 @@
 import React from 'react';
 import Link from 'next/link';
 import { Package } from 'lucide-react';
+import content from '@/content/footer.json'; // Import the JSON data
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
-  const footerLinks = {
-    categories: [
-      { name: 'Electronics', href: '/products?category=electronics' },
-      { name: 'Clothing', href: '/products?category=clothing' },
-      { name: 'Books', href: '/products?category=books' },
-      { name: 'Home & Garden', href: '/products?category=home' },
-    ],
-  };
+  // Footer links are now from content.categories.items
+  // const footerLinks = {
+  //   categories: [
+  //     { name: 'Electronics', href: '/products?category=electronics' },
+  //     { name: 'Clothing', href: '/products?category=clothing' },
+  //     { name: 'Books', href: '/products?category=books' },
+  //     { name: 'Home & Garden', href: '/products?category=home' },
+  //   ],
+  // };
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -25,19 +27,18 @@ const Footer: React.FC = () => {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Package className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">EcomStore</span>
+              <span className="text-xl font-bold">{content.companyInfo.name}</span>
             </div>
             <p className="text-gray-300 mb-6 max-w-md">
-              Your one-stop destination for quality products at unbeatable prices. 
-              Shop with confidence and enjoy our seamless e-commerce experience.
+              {content.companyInfo.description}
             </p>
           </div>
 
           {/* Categories */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Categories</h3>
+            <h3 className="text-lg font-semibold mb-4">{content.categories.heading}</h3>
             <ul className="space-y-2">
-              {footerLinks.categories.map((link) => (
+              {content.categories.items.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
@@ -56,7 +57,7 @@ const Footer: React.FC = () => {
           <div className="text-center">
             {/* Copyright */}
             <div className="text-gray-300 text-sm">
-              © {currentYear} EcomStore. All rights reserved.
+              {content.copyright.textBeforeYear}{currentYear}{content.copyright.textAfterYear}
             </div>
           </div>
         </div>

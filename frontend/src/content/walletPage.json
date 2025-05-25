@@ -1,0 +1,56 @@
+{
+  "pageHeader": {
+    "heading": "Wallet",
+    "subheading": "Manage your wallet balance and view transaction history"
+  },
+  "toasts": {
+    "loadError": "Failed to load wallet data. Please try again.",
+    "invalidAmount": "Please enter a valid amount",
+    "maxAmountExceeded": "Maximum amount per transaction is $1,000",
+    "addFundsSuccessPrefix": "Successfully added ",
+    "addFundsSuccessSuffix": " to your wallet!",
+    "addFundsError": "Failed to add funds"
+  },
+  "quickActions": {
+    "addFunds": {
+      "title": "Add Funds",
+      "description": "Top up your wallet balance",
+      "button": "Add"
+    },
+    "history": {
+      "title": "Transaction History",
+      "description": "View all your transactions",
+      "button": "View"
+    }
+  },
+  "transactions": {
+    "heading": "Recent Transactions",
+    "countSuffix": " transactions found",
+    "emptyState": {
+      "heading": "No transactions yet",
+      "subheading": "Your transaction history will appear here"
+    },
+    "referencePrefix": "Ref: "
+  },
+  "addFundsModal": {
+    "title": "Add Funds",
+    "amountLabel": "Amount to Add",
+    "amountPlaceholder": "Enter amount",
+    "helpText": "Minimum: $1.00 • Maximum: $1,000.00",
+    "confirmationPrefix": "You're adding ",
+    "confirmationSuffix": " to your wallet",
+    "cancelButton": "Cancel",
+    "submitButton": "Add Funds"
+  },
+  "walletCard": {
+    "balanceTitle": "Wallet Balance",
+    "balanceSubtitle": "Available funds",
+    "statusReady": "Ready to spend",
+    "statusNeedsFunds": "Add funds to get started",
+    "addFundsButton": "Add Funds",
+    "historyButton": "History"
+  },
+  "actionButton": {
+    "processing": "Processing..."
+  }
+}

@@ -161,7 +161,7 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const user = await apiService.getCurrentUser();
           get().setUser(user);
-        } catch (error) {
+        } catch {
           get().logout();
         } finally {
           set({ isLoading: false });

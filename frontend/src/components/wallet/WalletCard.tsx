@@ -1,8 +1,9 @@
 import React from 'react';
-import { Wallet, Plus, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Wallet, Plus, ArrowUpRight } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import { Wallet as WalletType } from '@/types';
 import { formatCurrency } from '@/utils';
+import content from '@/content/walletPage.json';
 
 interface WalletCardProps {
   wallet: WalletType | null;
@@ -18,6 +19,7 @@ const WalletCard: React.FC<WalletCardProps> = ({
   className
 }) => {
   const balance = wallet?.balance || 0;
+  const cardContent = content.walletCard;
 
   return (
     <Card className={`p-6 bg-gradient-to-br from-blue-600 to-purple-700 text-white ${className}`}>
@@ -27,8 +29,8 @@ const WalletCard: React.FC<WalletCardProps> = ({
             <Wallet className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Wallet Balance</h3>
-            <p className="text-blue-100 text-sm">Available funds</p>
+            <h3 className="text-lg font-semibold">{cardContent.balanceTitle}</h3>
+            <p className="text-blue-100 text-sm">{cardContent.balanceSubtitle}</p>
           </div>
         </div>
       </div>
@@ -38,7 +40,7 @@ const WalletCard: React.FC<WalletCardProps> = ({
           {formatCurrency(balance)}
         </div>
         <p className="text-blue-100 text-sm">
-          {balance > 0 ? 'Ready to spend' : 'Add funds to get started'}
+          {balance > 0 ? cardContent.statusReady : cardContent.statusNeedsFunds}
         </p>
       </div>
 
@@ -50,10 +52,9 @@ const WalletCard: React.FC<WalletCardProps> = ({
             className="flex-1 bg-white bg-opacity-20 border-white border-opacity-30 text-white hover:bg-opacity-30"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Funds
+            {cardContent.addFundsButton}
           </Button>
         )}
-        
         {onViewHistory && (
           <Button
             onClick={onViewHistory}
@@ -61,7 +62,7 @@ const WalletCard: React.FC<WalletCardProps> = ({
             className="flex-1 bg-white bg-opacity-20 border-white border-opacity-30 text-white hover:bg-opacity-30"
           >
             <ArrowUpRight className="w-4 h-4 mr-2" />
-            History
+            {cardContent.historyButton}
           </Button>
         )}
       </div>

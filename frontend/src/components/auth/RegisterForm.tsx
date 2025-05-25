@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button, Input } from '@/components/ui';
 import { useAuthStore } from '@/context/authStore';
-import { RegisterRequest } from '@/types';
+// import { RegisterRequest } from '@/types';
 import toast from 'react-hot-toast';
 
 interface RegisterFormProps {
@@ -38,7 +38,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchView }) => {
 
     try {
       await register({ name, email, password });
-    } catch (error) {
+    } catch {
       // Error is handled in store
     }
   };

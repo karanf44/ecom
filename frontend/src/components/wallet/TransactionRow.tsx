@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowUpRight, ArrowDownLeft, ShoppingCart, Plus } from 'lucide-react';
 import { WalletTransaction } from '@/types';
 import { formatCurrency, formatDateTime } from '@/utils';
+import content from '@/content/walletPage.json'; // Import the JSON data
 
 interface TransactionRowProps {
   transaction: WalletTransaction;
@@ -50,7 +51,7 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
           </div>
           {transaction.reference_id && (
             <div className="text-xs text-gray-500 mt-1">
-              Ref: {transaction.reference_id}
+              {content.transactions.referencePrefix}{transaction.reference_id}
             </div>
           )}
         </div>

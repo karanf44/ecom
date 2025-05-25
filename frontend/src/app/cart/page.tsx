@@ -7,6 +7,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import { CartItem, CartSummary } from '@/components/cart';
 import { Button } from '@/components/ui';
 import { useCartStore } from '@/context/cartStore';
+import content from '@/content/cartPage.json'; // Import the JSON data
 
 const CartPage: React.FC = () => {
   const storeItems = useCartStore(state => state.items);
@@ -17,7 +18,7 @@ const CartPage: React.FC = () => {
   const items = Array.isArray(storeItems) ? storeItems : [];
 
   const handleClearCart = () => {
-    if (window.confirm('Are you sure you want to clear your cart?')) {
+    if (window.confirm(content.pageHeader.clearCartConfirmation)) {
       clearCart();
     }
   };
@@ -34,16 +35,16 @@ const CartPage: React.FC = () => {
                 className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
-                Continue Shopping
+                {content.pageHeader.continueShopping}
               </Link>
             </div>
             
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+                <h1 className="text-3xl font-bold text-gray-900">{content.pageHeader.heading}</h1>
                 <p className="text-gray-600 mt-1">
                   {itemCount === 0 
-                    ? 'Your cart is empty' 
+                    ? content.pageHeader.emptyCartMessage 
                     : `${itemCount} ${itemCount === 1 ? 'item' : 'items'} in your cart`
                   }
                 </p>
@@ -56,7 +57,7 @@ const CartPage: React.FC = () => {
                   disabled={isLoading}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
-                  Clear Cart
+                  {content.pageHeader.clearCartButton}
                 </Button>
               )}
             </div>
@@ -72,11 +73,11 @@ const CartPage: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 2.5M7 13l2.5 2.5" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-medium text-gray-900 mb-2">Your cart is empty</h3>
-                  <p className="text-gray-600 mb-6">Looks like you haven't added any items yet</p>
+                  <h3 className="text-xl font-medium text-gray-900 mb-2">{content.emptyState.heading}</h3>
+                  <p className="text-gray-600 mb-6">{content.emptyState.subheading}</p>
                   <Link href="/products">
                     <Button size="lg">
-                      Start Shopping
+                      {content.emptyState.shopButton}
                     </Button>
                   </Link>
                 </div>
@@ -104,10 +105,10 @@ const CartPage: React.FC = () => {
                 {/* Recommended Products */}
                 <div className="mt-12 pt-8 border-t border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    You might also like
+                    {content.recommendations.heading}
                   </h3>
                   <div className="text-center py-8 bg-gray-100 rounded-lg">
-                    <p className="text-gray-600">Recommended products coming soon...</p>
+                    <p className="text-gray-600">{content.recommendations.placeholder}</p>
                   </div>
                 </div>
               </div>

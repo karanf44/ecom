@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { CartState, Product, CartItem, Cart } from '@/types';
+import { CartState, Product, CartItem/*, Cart*/ } from '@/types';
 import apiService from '@/services/api';
 import { calculateCartTotal, calculateCartItemCount } from '@/utils';
 import toast from 'react-hot-toast';

@@ -19,7 +19,7 @@ import {
   ProductImageUploadResponse,
   UserImageUploadResponse
 } from '@/types';
-import { getLocalStorage, setLocalStorage, removeLocalStorage } from '@/utils';
+import { getLocalStorage, removeLocalStorage } from '@/utils';
 import { useAuthStore } from '@/context/authStore';
 
 class ApiService {
@@ -245,7 +245,7 @@ class ApiService {
     const response = await this.api.get<ApiResponse<any>>('/api/checkout/summary');
     return this.handleResponse(response) as Promise<{ 
       items: CartItem[];
-      totalItems: number;
+      totalItems: number; 
       subtotal: number; 
       shipping: number; 
       tax: number; 

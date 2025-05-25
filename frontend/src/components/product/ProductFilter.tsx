@@ -4,6 +4,7 @@ import { Button, Input } from '@/components/ui';
 import { ProductFilters, Category } from '@/types';
 import apiService from '@/services/api';
 import toast from 'react-hot-toast';
+import content from '@/content/productsPage.json'; // Import the JSON data
 
 interface ProductFilterProps {
   filters: ProductFilters;
@@ -12,14 +13,15 @@ interface ProductFilterProps {
   className?: string;
 }
 
-const sortOptions = [
-  { value: 'created_at|desc', label: 'Newest First' },
-  { value: 'created_at|asc', label: 'Oldest First' },
-  { value: 'name|asc', label: 'Name (A-Z)' },
-  { value: 'name|desc', label: 'Name (Z-A)' },
-  { value: 'price|asc', label: 'Price (Low to High)' },
-  { value: 'price|desc', label: 'Price (High to Low)' },
-];
+// sortOptions are now from content.filter.sortOptions
+// const sortOptions = [
+//   { value: 'created_at|desc', label: 'Newest First' },
+//   { value: 'created_at|asc', label: 'Oldest First' },
+//   { value: 'name|asc', label: 'Name (A-Z)' },
+//   { value: 'name|desc', label: 'Name (Z-A)' },
+//   { value: 'price|asc', label: 'Price (Low to High)' },
+//   { value: 'price|desc', label: 'Price (High to Low)' },
+// ];
 
 const ProductFilter: React.FC<ProductFilterProps> = ({
   filters,
@@ -30,7 +32,6 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
-  // Fetch categories from API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -39,13 +40,12 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
         setCategories(categoriesData);
       } catch (error) {
         console.error('Failed to fetch categories:', error);
-        toast.error('Failed to load categories');
+        toast.error(content.filter.loadCategoriesError);
         setCategories([]);
       } finally {
         setLoadingCategories(false);
       }
     };
-
     fetchCategories();
   }, []);
 
@@ -70,9 +70,8 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <Filter className="w-5 h-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">Filters</h3>
+          <h3 className="font-semibold text-gray-900">{content.filter.heading}</h3>
         </div>
-        
         {hasActiveFilters && (
           <Button
             variant="outline"
@@ -81,16 +80,15 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
             className="flex items-center space-x-1"
           >
             <X className="w-4 h-4" />
-            <span>Clear</span>
+            <span>{content.filter.clearButton}</span>
           </Button>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Category Filter */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Category
+            {content.filter.categoryLabel}
           </label>
           <select
             value={filters.category || ''}
@@ -99,7 +97,7 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
             disabled={loadingCategories}
           >
             <option value="">
-              {loadingCategories ? 'Loading...' : 'All Categories'}
+              {loadingCategories ? content.filter.categorySelect.loading : content.filter.categorySelect.allCategories}
             </option>
             {categories.map((category) => (
               <option key={category.name} value={category.name}>
@@ -109,14 +107,13 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
           </select>
         </div>
 
-        {/* Price Range */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Min Price
+            {content.filter.minPriceLabel}
           </label>
           <Input
             type="number"
-            placeholder="$0"
+            placeholder={content.filter.minPricePlaceholder}
             value={filters.minPrice?.toString() || ''}
             onChange={(value) => onFiltersChange({ 
               ...filters, 
@@ -127,11 +124,11 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Max Price
+            {content.filter.maxPriceLabel}
           </label>
           <Input
             type="number"
-            placeholder="$1000"
+            placeholder={content.filter.maxPricePlaceholder}
             value={filters.maxPrice?.toString() || ''}
             onChange={(value) => onFiltersChange({ 
               ...filters, 
@@ -140,17 +137,16 @@ const ProductFilter: React.FC<ProductFilterProps> = ({
           />
         </div>
 
-        {/* Sort By */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Sort By
+            {content.filter.sortByLabel}
           </label>
           <select
             value={`${filters.sortBy || 'created_at'}|${filters.sortOrder || 'desc'}`}
             onChange={(e) => handleSortChange(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            {sortOptions.map((option) => (
+            {content.filter.sortOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

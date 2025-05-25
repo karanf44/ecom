@@ -1,0 +1,18 @@
+{
+  "pageHeader": {
+    "continueShopping": "Continue Shopping",
+    "heading": "Shopping Cart",
+    "emptyCartMessage": "Your cart is empty",
+    "clearCartButton": "Clear Cart",
+    "clearCartConfirmation": "Are you sure you want to clear your cart?"
+  },
+  "emptyState": {
+    "heading": "Your cart is empty",
+    "subheading": "Looks like you haven't added any items yet",
+    "shopButton": "Start Shopping"
+  },
+  "recommendations": {
+    "heading": "You might also like",
+    "placeholder": "Recommended products coming soon..."
+  }
+} 

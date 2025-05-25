@@ -1,0 +1,17 @@
+{
+  "logoText": "EcomStore",
+  "navigation": [
+    { "name": "Products", "href": "/products" }
+  ],
+  "searchPlaceholder": "Search products...",
+  "userMenu": {
+    "wallet": "Wallet",
+    "logout": "Logout"
+  },
+  "auth": {
+    "signIn": "Sign In"
+  },
+  "mobileNav": {
+    "wallet": "Wallet"
+  }
+} 
