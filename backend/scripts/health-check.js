@@ -15,18 +15,18 @@ const ENVIRONMENTS = {
     baseUrl: process.env.API_URL_DEV || 'https://your-dev-api.execute-api.us-east-1.amazonaws.com/dev',
     timeout: 10000
   },
-  staging: {
-    baseUrl: process.env.API_URL_STAGING || 'https://your-staging-api.execute-api.us-east-1.amazonaws.com/staging',
-    timeout: 15000
-  },
-  prod: {
-    baseUrl: process.env.API_URL_PROD || 'https://your-prod-api.execute-api.us-east-1.amazonaws.com/prod',
-    timeout: 5000
-  },
-  local: {
-    baseUrl: 'http://localhost:3003',
-    timeout: 5000
-  }
+  // staging: {
+  //   baseUrl: process.env.API_URL_STAGING || 'https://your-staging-api.execute-api.us-east-1.amazonaws.com/staging',
+  //   timeout: 15000
+  // },
+  // prod: {
+  //   baseUrl: process.env.API_URL_PROD || 'https://your-prod-api.execute-api.us-east-1.amazonaws.com/prod',
+  //   timeout: 5000
+  // },
+  // local: {
+  //   baseUrl: 'http://localhost:3003',
+  //   timeout: 5000
+  // }
 };
 
 // Health check test suite

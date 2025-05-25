@@ -27,29 +27,29 @@ module.exports = {
     }
   },
 
-  production: {
-    client: 'postgresql',
-    connection: {
-      host: process.env.DB_HOST_PROD,
-      port: process.env.DB_PORT_PROD || 5432,
-      user: process.env.DB_USERNAME_PROD,
-      password: process.env.DB_PASSWORD_PROD,
-      database: process.env.DB_NAME_PROD,
-      ssl: {
-        require: true,
-        rejectUnauthorized: false
-      }
-    },
-    pool: {
-      min: 2,
-      max: 10
-    },
-    migrations: {
-      directory: './src/database/migrations',
-      tableName: 'knex_migrations'
-    },
-    seeds: {
-      directory: './src/database/seeds'
-    }
-  }
+  // production: {
+  //   client: 'postgresql',
+  //   connection: {
+  //     host: process.env.DB_HOST_PROD,
+  //     port: process.env.DB_PORT_PROD || 5432,
+  //     user: process.env.DB_USERNAME_PROD,
+  //     password: process.env.DB_PASSWORD_PROD,
+  //     database: process.env.DB_NAME_PROD,
+  //     ssl: {
+  //       require: true,
+  //       rejectUnauthorized: false
+  //     }
+  //   },
+  //   pool: {
+  //     min: 2,
+  //     max: 10
+  //   },
+  //   migrations: {
+  //     directory: './src/database/migrations',
+  //     tableName: 'knex_migrations'
+  //   },
+  //   seeds: {
+  //     directory: './src/database/seeds'
+  //   }
+  // }
 }; 

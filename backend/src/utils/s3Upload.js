@@ -15,7 +15,7 @@ const s3Client = new S3Client({
 
 // Configuration
 const CONFIG = {
-  bucket: process.env.S3_BUCKET_NAME || 'ecommerce-images',
+  bucket: process.env.S3_BUCKET_NAME || 'devtestecom',
   region: process.env.AWS_REGION || 'us-east-1',
   maxFileSize: 5 * 1024 * 1024, // 5MB
   allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],

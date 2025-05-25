@@ -4,10 +4,6 @@ require('./config/telemetry');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
-// --- BEGIN DEBUG LOGGING (app.js) ---
-console.log('[APP_DEBUG] process.env.DB_NAME:', process.env.DB_NAME);
-// --- END DEBUG LOGGING (app.js) ---
-
 const express = require('express');
 const cors = require('cors');
 const app = express();

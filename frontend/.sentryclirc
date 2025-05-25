@@ -1,0 +1,10 @@
+# This file is used by the Sentry CLI
+# https://docs.sentry.io/Sentry-CLI/
+
+[defaults]
+url = https://sentry.io/ # Or your self-hosted Sentry URL
+org = # Your Sentry organization slug (set via SENTRY_ORG env var or here)
+project = # Your Sentry project slug (set via SENTRY_PROJECT env var or here)
+
+[auth]
+token = # Your Sentry auth token (set via SENTRY_AUTH_TOKEN env var) 

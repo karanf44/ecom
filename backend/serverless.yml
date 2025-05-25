@@ -1,45 +1,43 @@
 service: ecommerce-backend
 
-frameworkVersion: '4'
-
 provider:
   name: aws
   runtime: nodejs18.x
   region: ${opt:region, 'us-east-1'}
   stage: ${opt:stage, 'dev'}
   
-  # Stage-specific environment variables
+  # Stage-specific environment variables from custom.properties.yml
   environment:
     NODE_ENV: ${self:provider.stage}
     STAGE: ${self:provider.stage}
     
-    # Database Configuration (stage-specific)
-    DB_HOST: ${env:DB_HOST_${self:provider.stage}, ${env:DB_HOST}}
-    DB_PORT: ${env:DB_PORT, '5432'}
-    DB_NAME: ${env:DB_NAME_${self:provider.stage}, ${env:DB_NAME}}
-    DB_USERNAME: ${env:DB_USERNAME_${self:provider.stage}, ${env:DB_USERNAME}}
-    DB_PASSWORD: ${env:DB_PASSWORD_${self:provider.stage}, ${env:DB_PASSWORD}}
+    # Database Configuration
+    DB_HOST: ${self:custom.stages.${self:provider.stage}.dbHost}
+    DB_PORT: ${self:custom.stages.${self:provider.stage}.dbPort}
+    DB_NAME: ${self:custom.stages.${self:provider.stage}.dbName}
+    DB_USERNAME: ${self:custom.stages.${self:provider.stage}.dbUsername}
+    DB_PASSWORD: ${self:custom.stages.${self:provider.stage}.dbPassword}
     
     # JWT Configuration
-    JWT_SECRET: ${env:JWT_SECRET_${self:provider.stage}, ${env:JWT_SECRET}}
-    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN, '24h'}
+    JWT_SECRET: ${self:custom.stages.${self:provider.stage}.jwtSecret}
+    JWT_EXPIRES_IN: ${self:custom.stages.${self:provider.stage}.jwtExpiresIn}
     
     # Redis Configuration (optional)
-    REDIS_URL: ${env:REDIS_URL_${self:provider.stage}, ${env:REDIS_URL, ''}}
+    REDIS_URL: ${self:custom.stages.${self:provider.stage}.redisUrl}
     
     # Application Configuration
-    APP_VERSION: ${env:GITHUB_SHA, '1.0.0'}
+    APP_VERSION: ${self:custom.stages.${self:provider.stage}.appVersion}
     
     # S3 Configuration
-    S3_BUCKET_NAME: ${env:S3_BUCKET_NAME_${self:provider.stage}, ${env:S3_BUCKET_NAME, 'devtestecom'}}
+    S3_BUCKET_NAME: ${self:custom.stages.${self:provider.stage}.s3BucketName}
     
-  # Stage-specific VPC Configuration
+  # Stage-specific VPC Configuration from custom.properties.yml
   vpc:
     securityGroupIds:
-      - ${env:SECURITY_GROUP_ID_${self:provider.stage}, ${env:SECURITY_GROUP_ID}}
+      - ${self:custom.stages.${self:provider.stage}.securityGroupId}
     subnetIds:
-      - ${env:SUBNET_ID_1_${self:provider.stage}, ${env:SUBNET_ID_1}}
-      - ${env:SUBNET_ID_2_${self:provider.stage}, ${env:SUBNET_ID_2}}
+      - ${self:custom.stages.${self:provider.stage}.subnetId1}
+      - ${self:custom.stages.${self:provider.stage}.subnetId2}
   
   # Enhanced IAM permissions
   iam:
@@ -63,18 +61,18 @@ provider:
             - s3:DeleteObject
             - s3:PutObjectAcl
           Resource: 
-            - "arn:aws:s3:::${env:S3_BUCKET_NAME, 'devtestecom'}/*"
+            - "arn:aws:s3:::${self:custom.stages.${self:provider.stage}.s3BucketName}/*"
         - Effect: Allow
           Action:
             - s3:ListBucket
           Resource: 
-            - "arn:aws:s3:::${env:S3_BUCKET_NAME, 'devtestecom'}"
+            - "arn:aws:s3:::${self:custom.stages.${self:provider.stage}.s3BucketName}"
   
   # API Gateway configuration
   httpApi:
     cors:
       allowedOrigins:
-        - ${env:FRONTEND_URL_${self:provider.stage}, 'http://localhost:3000'}
+        - ${self:custom.stages.${self:provider.stage}.frontendUrl}
       allowedHeaders:
         - Content-Type
         - Authorization
@@ -90,12 +88,10 @@ provider:
   deploymentBucket:
     name: ${self:service}-${self:provider.stage}-deployments
     versioning: true
-    accelerate: true
   
   # Lambda function defaults
   memorySize: ${self:custom.stages.${self:provider.stage}.memorySize, 512}
   timeout: ${self:custom.stages.${self:provider.stage}.timeout, 30}
-  reservedConcurrency: ${self:custom.stages.${self:provider.stage}.reservedConcurrency, 10}
 
 # Package configuration
 package:
@@ -110,26 +106,11 @@ package:
 
 plugins:
   - serverless-offline
-  - serverless-plugin-warmup
+  # - serverless-plugin-warmup
 
 custom:
-  # Stage-specific configurations
-  stages:
-    dev:
-      memorySize: 256
-      timeout: 30
-      reservedConcurrency: 5
-      warmup: false
-    staging:
-      memorySize: 512
-      timeout: 30
-      reservedConcurrency: 10
-      warmup: true
-    prod:
-      memorySize: 1024
-      timeout: 30
-      reservedConcurrency: 50
-      warmup: true
+  # Stage-specific configurations from external file
+  stages: ${file(./custom.properties.yml):stages}
   
   # Serverless Offline Configuration
   serverless-offline:
@@ -138,13 +119,13 @@ custom:
     stage: dev
   
   # Warmup plugin configuration
-  warmup:
-    default:
-      enabled: ${self:custom.stages.${self:provider.stage}.warmup, false}
-      events:
-        - schedule: 'rate(5 minutes)'
-      concurrency: 1
-      timeout: 20
+  # warmup:
+  #   default:
+  #     enabled: ${self:custom.stages.${self:provider.stage}.warmup, false}
+  #     events:
+  #       - schedule: 'rate(5 minutes)'
+  #     concurrency: 1
+  #     timeout: 20
 
 functions:
   # Main API Gateway handler (fallback for all routes)
@@ -158,8 +139,8 @@ functions:
           path: /
           method: ANY
     timeout: 30
-    warmup:
-      enabled: ${self:custom.stages.${self:provider.stage}.warmup, false}
+    # warmup:
+    #   enabled: ${self:custom.stages.${self:provider.stage}.warmup, false}
 #################################################################
   # Health check function
 ################################################################  
