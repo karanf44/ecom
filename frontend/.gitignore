@@ -38,7 +38,7 @@ lerna-debug.log*
 
 # ESLint cache
 /.eslintcache
-
+.sentryclirc
 # env files (can opt-in for committing if needed)
 .env
 .env.local
