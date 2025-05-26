@@ -88,6 +88,8 @@ provider:
   deploymentBucket:
     name: ${self:service}-${self:provider.stage}-deployments
     versioning: true
+    # serverSideEncryption: AES256
+    # reservedConcurrency: 10
   
   # Lambda function defaults
   memorySize: ${self:custom.stages.${self:provider.stage}.memorySize, 512}
@@ -106,6 +108,7 @@ package:
 
 plugins:
   - serverless-offline
+  # - serverless-dotenv-plugin
   # - serverless-plugin-warmup
 
 custom:
@@ -290,7 +293,7 @@ functions:
       - httpApi:
           path: /api/products/images/upload
           method: post
-    timeout: 60
+    timeout: 30
     memorySize: 1024
 ################################################################
   deleteProductImage:
@@ -307,7 +310,7 @@ functions:
       - httpApi:
           path: /api/users/profile/image
           method: post
-    timeout: 60
+    timeout: 30
     memorySize: 512
 ################################################################
   deleteUserProfileImage:
