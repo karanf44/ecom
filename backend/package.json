@@ -10,7 +10,7 @@
     "dev:traditional": "nodemon src/app.js",
     "serverless": "serverless offline",
     "deploy": "serverless deploy",
-    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:dev": "serverless deploy --stage dev --verbose",
     "deploy:staging": "serverless deploy --stage staging",
     "deploy:prod": "serverless deploy --stage prod",
     "deploy:rollback": "serverless deploy --stage $STAGE --revert",
@@ -108,6 +108,7 @@
   },
   "devDependencies": {
     "sequelize-cli": "^6.6.3",
+    "serverless": "^3.40.0",
     "serverless-offline": "^13.8.1",
     "serverless-plugin-warmup": "^8.3.0"
   }
