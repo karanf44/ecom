@@ -8,6 +8,7 @@
 .serverless/
 .webpack/
 *.js.map # Source maps from JS transpilation if applicable
+buildspec.yml
 
 # Log files
 logs/

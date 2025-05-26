@@ -1,0 +1,65 @@
+stages:
+  dev:
+    memorySize: 1024  
+    timeout: 30
+    reservedConcurrency: 50
+    warmup: true
+    # Dev-specific environment values
+    dbHost: 'YOUR_DEV_DB_HOST'
+    dbPort: 'YOUR_DEV_DB_PORT'
+    dbName: 'devtestecom'
+    dbUsername: 'YOUR_DEV_DB_USERNAME'
+    dbPassword: 'YOUR_DEV_DB_PASSWORD'
+    jwtSecret: 'YOUR_DEV_JWT_SECRET'
+    jwtExpiresIn: '24h'
+    redisUrl: 'YOUR_DEV_REDIS_URL' # or empty if not used: ''
+    appVersion: 'YOUR_DEV_APP_VERSION' # e.g., git sha
+    s3BucketName: 'devtestecom'
+    securityGroupId: 'YOUR_DEV_SECURITY_GROUP_ID'
+    subnetId1: 'YOUR_DEV_SUBNET_ID_1'
+    subnetId2: 'YOUR_DEV_SUBNET_ID_2'
+    frontendUrl: 'YOUR_DEV_FRONTEND_URL'
+  
+  staging:
+    memorySize: 1024  
+    timeout: 30
+    reservedConcurrency: 50
+    warmup: true
+    # Staging-specific environment values (replace placeholders)
+    dbHost: 'YOUR_STAGING_DB_HOST'
+    dbPort: 'YOUR_STAGING_DB_PORT'
+    dbName: 'stagingtestecom'
+    dbUsername: 'YOUR_STAGING_DB_USERNAME'
+    dbPassword: 'YOUR_STAGING_DB_PASSWORD'
+    jwtSecret: 'YOUR_STAGING_JWT_SECRET'
+    jwtExpiresIn: '24h'
+    redisUrl: 'YOUR_STAGING_REDIS_URL' # or empty if not used: ''
+    appVersion: 'YOUR_STAGING_APP_VERSION' # e.g., git sha
+    s3BucketName: 'stagingtestecom'
+    securityGroupId: 'YOUR_STAGING_SECURITY_GROUP_ID'
+    subnetId1: 'YOUR_STAGING_SUBNET_ID_1'
+    subnetId2: 'YOUR_STAGING_SUBNET_ID_2'
+    frontendUrl: 'YOUR_STAGING_FRONTEND_URL'
+  
+  production:
+    memorySize: 1024
+    timeout: 30
+    reservedConcurrency: 50
+    warmup: true
+    # Production-specific environment values (replace placeholders)
+    dbHost: 'YOUR_PROD_DB_HOST'
+    dbPort: 'YOUR_PROD_DB_PORT'
+    dbName: 'prodtestecom'
+    dbUsername: 'YOUR_PROD_DB_USERNAME'
+    dbPassword: 'YOUR_PROD_DB_PASSWORD'
+    jwtSecret: 'YOUR_PROD_JWT_SECRET'
+    jwtExpiresIn: '24h'
+    redisUrl: 'YOUR_PROD_REDIS_URL' # or empty if not used: ''
+    appVersion: 'YOUR_PROD_APP_VERSION' # e.g., git sha
+    s3BucketName: 'prodtestecom'
+    securityGroupId: 'YOUR_PROD_SECURITY_GROUP_ID'
+    subnetId1: 'YOUR_PROD_SUBNET_ID_1'
+    subnetId2: 'YOUR_PROD_SUBNET_ID_2'
+    frontendUrl: 'YOUR_PROD_FRONTEND_URL'
+    
+ 
