@@ -1,0 +1,20 @@
+
+# Public API URL
+NEXT_PUBLIC_API_URL=https://your-api-id.execute-api.us-east-1.amazonaws.com/default/
+
+# Logging Level (options: trace | debug | warn | error | silent)
+NEXT_PUBLIC_LOG_LEVEL=error
+
+# Sentry Frontend Configuration
+NEXT_PUBLIC_SENTRY_ENABLED=false
+NEXT_PUBLIC_SENTRY_DSN=https://your-sentry-public-key@oXXXXXXX.ingest.us.sentry.io/your-project-id
+
+# Runtime Environment for Next.js
+NEXT_RUNTIME=development   # edge | development | nodejs
+
+# Node Environment
+NODE_ENV=development
+
+# Sentry Authentication Token (required for source map upload, private key - DO NOT COMMIT)
+SENTRY_AUTH_TOKEN=your-sentry-auth-token
+
